@@ -124,3 +124,21 @@ class TemplateBuilder:
                 text += f"{user['username']} - {user['total']}\n"
 
         return text
+
+
+    @classmethod
+    def show_tournament_players(cls, players: list[dict], tg_id: int):
+        text = (
+            f"<b>Список участников</b>\n"
+            f"Tг-ник (ник)   стол-бокс\n\n"
+                )
+
+        for player in players:
+            if player['tg_id'] == tg_id:
+                text += f"➡️<b>@{player['tg_username']} ({player['nickname']})   {player['table']}-{ f'{player['box']}' if player['box'] != 0 else 'Крупье'}</b>⬅️\n"
+            else:
+                text += f"@{player['tg_username']} ({player['nickname']}) -- {player['table']}-{ f'{player['box']}' if player['box'] != 0 else 'Крупье'}\n"
+        return text
+
+
+

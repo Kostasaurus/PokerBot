@@ -102,6 +102,7 @@ async def show_tournament_detail_handler(call: CallbackQuery, state: FSMContext)
             f'play:{year}:{month}:{tournament_id}': 'Участвовать',
             f'month:{year}:{month}': '⬅ к месяцу'
         }) if not IsAdmin() else create_inline_keyboard(1, **{
+            f'ps:{year}:{month}:{tournament_id}:{status}': 'Участники',
              f'dealer:{tournament_id}': 'Добавить крупье',
             f'play:{year}:{month}:{tournament_id}': 'Участвовать',
             f'month:{year}:{month}': '⬅ к месяцу'
@@ -113,7 +114,7 @@ async def show_tournament_detail_handler(call: CallbackQuery, state: FSMContext)
             f'c_t:{year}:{month}:{tournament_id}': 'Отменить запись',
             f'month:{year}:{month}': '⬅ к месяцу'
         }) if not IsAdmin() else create_inline_keyboard(1, **{
-            'play': 'Назад', f'dealer:{tournament_id}': 'Добавить крупье',
+            f'ps:{year}:{month}:{tournament_id}:{status}': 'Участники', f'dealer:{tournament_id}': 'Добавить крупье',
             f'c_t:{year}:{month}:{tournament_id}': 'Отменить запись',
             f'month:{year}:{month}': '⬅ к месяцу'
         })
@@ -123,8 +124,8 @@ async def show_tournament_detail_handler(call: CallbackQuery, state: FSMContext)
         reply_markup = create_inline_keyboard(1, **{
             f'month:{year}:{month}': '⬅ к месяцу',
         }) if not IsAdmin() else create_inline_keyboard(1, **{
-            f'month:{year}:{month}': '⬅ к месяцу',
-            f'r:{year}:{month}:{tournament_id}:{status}':'Добавить результат'
+            f'r:{year}:{month}:{tournament_id}:{status}':'Добавить результат',
+            f'month:{year}:{month}': '⬅ к месяцу'
         })
 
     await call.message.edit_text(
@@ -184,8 +185,9 @@ async def show_active_tournament_detail(call: CallbackQuery):
             f"cancel_tournament:{tournament_id}": 'Отменить запись',
             'play': 'Назад'
         }) if not IsAdmin() else create_inline_keyboard(1, **{
-            f"cancel_tournament:{tournament_id}": 'Отменить запись',
-            'play': 'Назад', f'dealer:{tournament_id}': 'Добавить крупье'
+            f'ps:{tournament_id}:{status}': 'Участники',
+            'play': 'Назад', f'dealer:{tournament_id}': 'Добавить крупье',
+            f"cancel_tournament:{tournament_id}": 'Отменить запись'
         })
 
     elif status == 'av':
@@ -197,8 +199,10 @@ async def show_active_tournament_detail(call: CallbackQuery):
             f"play_command:{tournament_id}": 'Участвовать',
             'play': 'Назад'
         }) if not IsAdmin() else create_inline_keyboard(1, **{
+            f'ps:{tournament_id}:{status}': 'Участники',
+            f'dealer:{tournament_id}': 'Добавить крупье',
             f"play_command:{tournament_id}": 'Участвовать',
-            'play': 'Назад', f'dealer:{tournament_id}': 'Добавить крупье'
+            'play': 'Назад'
         })
 
     await call.message.edit_text(text=text, reply_markup=reply_markup)
@@ -577,6 +581,23 @@ async def show_month_stats(call: CallbackQuery, state: FSMContext):
     stats = await UserManager.get_all_users_stats(*get_date_range_for_month(year, month))
     await call.message.edit_text(text=TemplateBuilder.show_stats(tg_id=call.from_user.id, stats=stats, year=year, month=month),
                                  reply_markup=create_inline_keyboard(1, **{f'view_months_st:{year}':f'К {year}'}))
+
+
+
+@callback_router.callback_query(F.data.startswith('ps:'))
+async def show_players(call: CallbackQuery):
+    await call.answer()
+    await call.message.delete_reply_markup()
+    info = call.data.split(':')
+    if len(info) == 3:
+        _, tournament_id, status = info
+        reply_markup = create_inline_keyboard(1, **{f'a_t:{tournament_id}:{status}':'Назад'})
+    elif len(info) == 5:
+        _, year, month, tournament_id, status = info
+        reply_markup = create_inline_keyboard(1, **{f't:{year}:{month}:{tournament_id}:{status}': 'Назад'})
+
+    players = await UserManager.get_all_players(tournament_id=tournament_id)
+    await call.message.edit_text(text=TemplateBuilder.show_tournament_players(players=players, tg_id=call.from_user.id), reply_markup=reply_markup)
 
 
 

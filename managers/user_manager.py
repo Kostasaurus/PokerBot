@@ -206,3 +206,30 @@ class UserManager:
             {'tg_id': row.tg_id, 'username': row.nickname, 'total': row.total or 0}
             for row in rows
         ]
+
+    @staticmethod
+    @connection
+    async def get_all_players(
+            session,
+            tournament_id: uuid.UUID | str
+    ) -> list[dict]:
+
+        query = (
+            select(
+                TournamentRegistration.tg_id,
+                TournamentRegistration.table,
+                TournamentRegistration.box,
+                UsersRegistered.nickname,
+                Users.username
+            )
+            .join(Users, Users.tg_id == TournamentRegistration.tg_id)
+            .join(UsersRegistered, UsersRegistered.tg_id == TournamentRegistration.tg_id)
+            .where(TournamentRegistration.tournament_id == tournament_id)
+        )
+
+        result = await session.execute(query)
+        rows = result.all()
+        return [
+            {'tg_id': row.tg_id, 'table': row.table, 'box': row.box, 'nickname': row.nickname, 'tg_username': row.username}
+            for row in rows
+        ]

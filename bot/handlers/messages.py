@@ -29,7 +29,7 @@ async def get_user_email(message: Message, state: FSMContext):
     if not await UserManager.check_email_exists(message.text):
         await state.update_data(email=message.text)
         await message.react([ReactionTypeEmoji(emoji='👍')])
-        reply_markup = create_inline_keyboard(1, **{'use_tg_nickname': 'Использовать тг-никнейм'}) if message.from_user.username else None
+        reply_markup = create_inline_keyboard(1, use_tg_nickname=('Использовать тг-никнейм', 'primary')) if message.from_user.username else None
         await message.answer(LEXICON['ask_nickname'], reply_markup=reply_markup)
         await state.set_state(Registration.waiting_nickname)
     else:
@@ -74,7 +74,7 @@ async def add_tournament_info(message: Message, state: FSMContext):
         await message.react([ReactionTypeEmoji(emoji='👍')])
         await state.clear()
     else:
-        await message.reply(result, reply_markup=create_inline_keyboard(1, **{'delete_state': 'Отменить'}))
+        await message.reply(result, reply_markup=create_inline_keyboard(1, **{'delete_state': ('Отменить', 'danger')}))
         await message.react([ReactionTypeEmoji(emoji='👎')])
 
 
@@ -88,17 +88,17 @@ async def add_dealer(message: Message, state: FSMContext):
         nick = items[0].replace('@', '')
         table = int(items[1])
     else:
-        await message.reply(f"Неверный формат!\nПеределывай!", reply_markup=create_inline_keyboard(1, **{'delete_state': 'Отменить'}))
+        await message.reply(f"Неверный формат!\nПеределывай!", reply_markup=create_inline_keyboard(1, delete_state=('Отменить', 'danger')))
         await message.react([ReactionTypeEmoji(emoji='👎')])
         return
     data = await state.get_data()
     tournament_id = data['dealer_tournament_id']
-    result =  await TournamentManager.set_dealer(tournament_id=tournament_id, tg_nickname=nick, table_number=table)
+    result =  await TournamentManager.set_dealer(tournament_id=tournament_id, nickname=nick, table_number=table)
     if isinstance(result, int):
         await message.answer(f'Добавлен дилер {nick}\nСтол {result}')
         await state.clear()
     else:
-        await message.reply(text=result, reply_markup=create_inline_keyboard(1, **{'delete_state': 'Отменить'}))
+        await message.reply(text=result, reply_markup=create_inline_keyboard(1, delete_state=('Отменить', 'danger')))
         await message.react([ReactionTypeEmoji(emoji='👎')])
 
 @message_router.message(StateFilter(Admin.waiting_results), IsAdmin())
@@ -108,16 +108,16 @@ async def add_result(message: Message, state: FSMContext):
         await message.reply(text='Фигню написал, переделывай!')
         await message.react([ReactionTypeEmoji(emoji='👎')])
         return
-    tg_nickname, result = info
+    nickname, result = info
     try:
-        OneUserResult(username=tg_nickname, result=int(result))
+        OneUserResult(username=nickname, result=int(result))
     except ValidationError:
         await message.reply(text='Фигню написал, переделывай!')
         await message.react([ReactionTypeEmoji(emoji='👎')])
         return
     data = await state.get_data()
 
-    tg_id = await TournamentManager.check_user_tournament_registration(tournament_id=data['tournament_id'], tg_nickname=tg_nickname)
+    tg_id = await TournamentManager.check_user_tournament_registration(tournament_id=data['tournament_id'], nickname=nickname)
     if isinstance(tg_id, int):
         current_results = data.get('results', {})
         current_results[tg_id] = int(result)

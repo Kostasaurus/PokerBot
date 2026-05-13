@@ -89,7 +89,7 @@ async def show_tournament_detail_handler(call: CallbackQuery, state: FSMContext)
     tournament_info = await TournamentManager.get_tournaments_with_status(tournament_id=tournament_id, user_id=call.from_user.id, only_future=False, month=month, year=year)
     tournament = tournament_info['tournament']
     if not tournament_info:
-        await call.message.edit_text(text='Пока нет информации о турнире', reply_markup=create_inline_keyboard(1, **{f'month:{year}:{month}': '⬅ к месяцу'}))
+        await call.message.edit_text(text='Пока нет информации о турнире', reply_markup=create_inline_keyboard(1, **{f'month:{year}:{month}': ('⬅ к месяцу', 'primary')}))
         return
 
     if status == 'av':
@@ -99,24 +99,24 @@ async def show_tournament_detail_handler(call: CallbackQuery, state: FSMContext)
             TemplateBuilder.show_available_tournament_info(tournament_info)
         )
         reply_markup = create_inline_keyboard(1, **{
-            f'play:{year}:{month}:{tournament_id}': 'Участвовать',
-            f'month:{year}:{month}': '⬅ к месяцу'
+            f'play:{year}:{month}:{tournament_id}': ('Участвовать', 'success'),
+            f'month:{year}:{month}': ('⬅ к месяцу', 'primary')
         }) if not IsAdmin() else create_inline_keyboard(1, **{
-            f'ps:{year}:{month}:{tournament_id}:{status}': 'Участники',
-             f'dealer:{tournament_id}': 'Добавить крупье',
-            f'play:{year}:{month}:{tournament_id}': 'Участвовать',
-            f'month:{year}:{month}': '⬅ к месяцу'
+            f'ps:{year}:{month}:{tournament_id}:{status}': ('Участники', 'primary'),
+             f'dealer:{tournament_id}': ('Добавить крупье', 'primary'),
+            f'play:{year}:{month}:{tournament_id}': ('Участвовать', 'success'),
+            f'month:{year}:{month}': ('⬅ к месяцу', 'primary')
         })
     elif status == 'reg':
         # text = f'{tournament.title}\n\n{tournament.start_time}'
         text = TemplateBuilder.show_users_tournament_info(tournament_info)
         reply_markup = create_inline_keyboard(1, **{
-            f'c_t:{year}:{month}:{tournament_id}': 'Отменить запись',
-            f'month:{year}:{month}': '⬅ к месяцу'
+            f'c_t:{year}:{month}:{tournament_id}': ('Отменить запись', 'danger'),
+            f'month:{year}:{month}': ('⬅ к месяцу', 'primary')
         }) if not IsAdmin() else create_inline_keyboard(1, **{
-            f'ps:{year}:{month}:{tournament_id}:{status}': 'Участники', f'dealer:{tournament_id}': 'Добавить крупье',
-            f'c_t:{year}:{month}:{tournament_id}': 'Отменить запись',
-            f'month:{year}:{month}': '⬅ к месяцу'
+            f'ps:{year}:{month}:{tournament_id}:{status}': 'Участники', f'dealer:{tournament_id}': ('Добавить крупье', 'primary'),
+            f'c_t:{year}:{month}:{tournament_id}': ('Отменить запись', 'danger'),
+            f'month:{year}:{month}': ('⬅ к месяцу', 'primary')
         })
     elif status == 'fin':
         results = await UserManager.get_all_users_stats(tournament_id=tournament_id)
@@ -124,8 +124,8 @@ async def show_tournament_detail_handler(call: CallbackQuery, state: FSMContext)
         reply_markup = create_inline_keyboard(1, **{
             f'month:{year}:{month}': '⬅ к месяцу',
         }) if not IsAdmin() else create_inline_keyboard(1, **{
-            f'r:{year}:{month}:{tournament_id}:{status}':'Добавить результат',
-            f'month:{year}:{month}': '⬅ к месяцу'
+            f'r:{year}:{month}:{tournament_id}:{status}':('Добавить результат', 'primary'),
+            f'month:{year}:{month}': ('⬅ к месяцу', 'primary')
         })
 
     await call.message.edit_text(
@@ -144,7 +144,7 @@ async def confirm_tournament_registration(call: CallbackQuery):
     await call.message.edit_text(
         "Подтвердить запись на турнир?",
         reply_markup=create_inline_keyboard(1, **{
-            f"confirmed:{tournament_id}": 'Подтвердить',
+            f"confirmed:{tournament_id}": ('Подтвердить', 'success'),
             f"t:{year}:{month}:{tournament_id}:av": 'Назад'
         })
     )
@@ -182,12 +182,12 @@ async def show_active_tournament_detail(call: CallbackQuery):
         )
         text=TemplateBuilder.show_users_tournament_info(tournament_info)
         reply_markup=create_inline_keyboard(1, **{
-            f"cancel_tournament:{tournament_id}": 'Отменить запись',
+            f"cancel_tournament:{tournament_id}": ('Отменить запись', 'danger'),
             'play': 'Назад'
         }) if not IsAdmin() else create_inline_keyboard(1, **{
-            f'ps:{tournament_id}:{status}': 'Участники',
-            'play': 'Назад', f'dealer:{tournament_id}': 'Добавить крупье',
-            f"cancel_tournament:{tournament_id}": 'Отменить запись'
+            f'ps:{tournament_id}:{status}': ('Участники', 'primary'),
+            'play': 'Назад', f'dealer:{tournament_id}': ('Добавить крупье', 'primary'),
+            f"cancel_tournament:{tournament_id}": ('Отменить запись', 'danger')
         })
 
     elif status == 'av':
@@ -199,9 +199,9 @@ async def show_active_tournament_detail(call: CallbackQuery):
             f"play_command:{tournament_id}": 'Участвовать',
             'play': 'Назад'
         }) if not IsAdmin() else create_inline_keyboard(1, **{
-            f'ps:{tournament_id}:{status}': 'Участники',
-            f'dealer:{tournament_id}': 'Добавить крупье',
-            f"play_command:{tournament_id}": 'Участвовать',
+            f'ps:{tournament_id}:{status}': ('Участники', 'primary'),
+            f'dealer:{tournament_id}': ('Добавить крупье', 'primary'),
+            f"play_command:{tournament_id}": ('Участвовать', 'success'),
             'play': 'Назад'
         })
 
@@ -219,7 +219,7 @@ async def quick_register_from_play(call: CallbackQuery):
     await call.message.edit_text(
         "Подтвердить запись на турнир?",
         reply_markup=create_inline_keyboard(1, **{
-            f"confirmed:{tournament_id}": 'Подтвердить',
+            f"confirmed:{tournament_id}": ('Подтвердить', 'success'),
             "play": "Назад"
         })
     )
@@ -272,7 +272,10 @@ async def show_all_scheduled_tournaments(call: CallbackQuery):
 
     await call.message.edit_text(
         TemplateBuilder.build_closest_tournaments(my_tournaments),
-        reply_markup=create_inline_keyboard(1, **{'cancel_registration': 'Выбрать и отменить'})
+        reply_markup=create_inline_keyboard(1, **{
+            'cancel_registration': ('Выбрать и отменить', 'danger'),
+            'scheduled': 'Назад'
+                                                  })
     )
 
 # Show the cancel registration menu (list of user's registered tournaments)
@@ -306,7 +309,7 @@ async def cancel_tournament_from_menu(call: CallbackQuery):
     await call.message.edit_text(
         "Вы уверены, что хотите отменить запись?",
         reply_markup=create_inline_keyboard(1, **{
-            f"confirm_cancel:{tournament_id}": 'Абсолютно',
+            f"confirm_cancel:{tournament_id}": ('Абсолютно', 'danger'),
             'cancel_registration': 'Назад'
         })
     )
@@ -333,8 +336,8 @@ async def back_to_scheduled(call: CallbackQuery):
         TemplateBuilder.build_closest_tournament(closest),
         reply_markup=create_inline_keyboard(
             1,
-            **{f'cancel_scheduled:{closest['tournament'].id}': 'Отменить запись',
-               'all_scheduled': 'Все запланированные игры'}
+            **{f'cancel_scheduled:{closest['tournament'].id}': ('Отменить запись', 'danger'),
+               'all_scheduled': ('Все запланированные игры', 'primary')}
         )
     )
 
@@ -349,7 +352,7 @@ async def cancel_tournament_from_scheduled(call: CallbackQuery):
     await call.message.edit_text(
         "Вы уверены, что хотите отменить запись?",
         reply_markup=create_inline_keyboard(1, **{
-            f"confirm_cancel:{tournament_id}": 'Абсолютно',
+            f"confirm_cancel:{tournament_id}": ('Абсолютно', 'danger'),
             f"scheduled": 'Назад'
         })
     )
@@ -366,7 +369,7 @@ async def cancel_tournament_from_detail(call: CallbackQuery):
     await call.message.edit_text(
         "Вы уверены, что хотите отменить запись?",
         reply_markup=create_inline_keyboard(1, **{
-            f"confirm_cancel:{tournament_id}": 'Абсолютно',
+            f"confirm_cancel:{tournament_id}": ('Абсолютно', 'danger'),
             f"t:{year}:{month}:{tournament_id}:reg": 'Назад'
         })
     )
@@ -400,7 +403,7 @@ async def start_registration_unregistered(call: CallbackQuery, state: FSMContext
     agreement = FSInputFile(path=LEXICON['agreement_file'])
     await call.message.answer_document(document=agreement, caption=LEXICON['starting_registration'],
                                   reply_markup=create_inline_keyboard(1, **{
-                                      'accept_terms': 'ПРИНЯТЬ'
+                                      'accept_terms': ('ПРИНЯТЬ', 'primary')
                                   }))
     await state.set_state(Registration.waiting_agreement)
 
@@ -412,7 +415,7 @@ async def registration_already_registered(call: CallbackQuery):
     await call.message.delete_reply_markup()
     logger.info("User %d tried to register again but is already registered", user_id)
 
-    await call.message.answer(LEXICON['already_registered'])
+    await call.message.answer(LEXICON['register_command_for_registered'])
 
 # Open tournament selection by months
 @callback_router.callback_query(F.data == 'tournaments')
@@ -429,7 +432,7 @@ async def accept_terms(call: CallbackQuery, state: FSMContext):
     await call.answer()
     await call.message.delete_reply_markup()
     reply_markup = create_inline_keyboard(1, **{
-        'use_tg_nickname': 'Использовать тг-никнейм'}) if call.from_user.username else None
+        'use_tg_nickname': ('Использовать тг-никнейм', 'primary')}) if call.from_user.username else None
     await call.message.answer(LEXICON['ask_nickname'], reply_markup=reply_markup)
     await state.set_state(Registration.waiting_nickname)
 
@@ -462,7 +465,7 @@ async def use_tg_nickname_handler(call: CallbackQuery, state: FSMContext):
 
         await UserManager.register_user(user=RegisterUser(
             tg_id=call.from_user.id,
-            email=data['email'],
+            email=None,
             nickname=data['nickname']
         ))
         await call.message.answer(LEXICON['user_registered'])
@@ -492,7 +495,7 @@ async def dealer_handler(call: CallbackQuery, state: FSMContext):
     await call.message.delete_reply_markup()
     tables = await TournamentManager.get_table_distribution(tournament_id)
     text = (
-        'Укажите тг-ник участника\n'
+        'Укажите ник участника\n'
         '(через пробел можно указать номер стола)\n'
         '(Если стол не указан, то будет использован первый пустой\n\n'
         'Распределение столов:\n'
@@ -511,8 +514,8 @@ async def add_results_handler(call: CallbackQuery, state: FSMContext):
     _, year, month, tournament_id, status = call.data.split(':')
 
     await call.message.edit_text(LEXICON['add_results'], reply_markup=create_inline_keyboard(1, **{
-        f't:{year}:{month}:{tournament_id}:{status}':'Отменить',
-        f'save_results':'Сохранить'
+        f't:{year}:{month}:{tournament_id}:{status}':('Отменить', 'danger'),
+        f'save_results':('Сохранить', 'success')
     }))
     await state.update_data(tournament_id=tournament_id)
     await state.set_state(Admin.waiting_results)
@@ -538,7 +541,7 @@ async def show_all_stats(call: CallbackQuery, state: FSMContext):
     await call.message.delete_reply_markup()
     stats = await UserManager.get_all_users_stats()
     await call.message.edit_text(text=TemplateBuilder.show_stats(tg_id=call.from_user.id, stats=stats), reply_markup=create_inline_keyboard(1, **{
-        'stats_years':'К годам'
+        'stats_years':('К годам', 'primary')
     }))
 
 
@@ -548,8 +551,8 @@ async def show_all_stats_years_nav(call: CallbackQuery, state: FSMContext):
     await call.message.delete_reply_markup()
     text = call.message.text
     await call.message.edit_text(text=text, reply_markup=create_inline_keyboard(2, **{
-        'view_quarters_st:2025':'2025',
-        'view_quarters_st:2026':'2026',
+        'view_quarters_st:2025':('2025', 'primary'),
+        'view_quarters_st:2026':('2026', 'primary'),
 
     }))
 
@@ -582,7 +585,7 @@ async def show_quarter_stats(call: CallbackQuery, state: FSMContext):
 
     stats = await UserManager.get_all_users_stats(*get_quarter_range(year, quarter))
     await call.message.edit_text(text=TemplateBuilder.show_stats(tg_id=call.from_user.id, stats=stats, year=year, quarter=quarter),
-                                 reply_markup=create_inline_keyboard(2, **{f'view_quarters_st:{year}':f'К {year}', f'stats_all':'За все время'}))
+                                 reply_markup=create_inline_keyboard(2, **{f'view_quarters_st:{year}':(f'К {year}', 'primary'), f'stats_all':('За все время', 'primary')}))
 
 @callback_router.callback_query(F.data.startswith('st_month:'))
 async def show_month_stats(call: CallbackQuery, state: FSMContext):
@@ -592,7 +595,7 @@ async def show_month_stats(call: CallbackQuery, state: FSMContext):
 
     stats = await UserManager.get_all_users_stats(*get_date_range_for_month(year, month))
     await call.message.edit_text(text=TemplateBuilder.show_stats(tg_id=call.from_user.id, stats=stats, year=year, month=month),
-                                 reply_markup=create_inline_keyboard(2, **{f'view_months_st:{year}':f'К {year}', f'stats_all':'За все время'}))
+                                 reply_markup=create_inline_keyboard(2, **{f'view_months_st:{year}':(f'К {year}', 'primary'), f'stats_all':('За все время', 'primary')}))
 
 
 

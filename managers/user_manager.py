@@ -26,7 +26,7 @@ class UserManager:
     @connection
     async def find_tg_id_by_username( session, username: str):
         user_result = await session.execute(
-            select(Users.tg_id).where(Users.username == username.replace('@', ''))
+            select(UsersRegistered.tg_id).where(UsersRegistered.nickname == username.replace('@', ''))
         )
         tg_id = user_result.scalar_one_or_none()
         return tg_id
@@ -109,11 +109,12 @@ class UserManager:
         result = await session.execute(query)
         return result.scalar_one_or_none() is not None
 
-
     @staticmethod
     @connection
     async def check_nickname_exists(session, nickname: str, exclude_tg_id: int | None = None) -> bool:
-        query = select(UsersRegistered).where(UsersRegistered.nickname == nickname)
+        query = select(UsersRegistered).where(
+            func.lower(UsersRegistered.nickname) == nickname.lower()
+        )
         if exclude_tg_id is not None:
             query = query.where(UsersRegistered.tg_id != exclude_tg_id)
         result = await session.execute(query)

@@ -40,13 +40,13 @@ async def process_start_command(message: Message, state: FSMContext):
             logger.info(f"Пользователь {user.id} уже зарегистрирован")
             await message.answer(
                 LEXICON['registered_started'],
-                reply_markup=create_inline_keyboard(1, **{'play':'записаться', 'tournaments':'все турниры'})
+                reply_markup=create_inline_keyboard(1, play=('записаться', 'success'), tournaments=('все турниры', 'primary'))
             )
         else:
             logger.info(f"Пользователь {user.id} еще не зарегистрирован")
             await message.answer(
                 LEXICON['unregistered_started'],
-                reply_markup=create_inline_keyboard(1, **{'register':'Зарегистрироваться'},)
+                reply_markup=create_inline_keyboard(1, register=('Зарегистрироваться', 'success'))
             )
     else:
         logger.info(f"Новый пользователь {user.id}")
@@ -65,7 +65,7 @@ async def process_start_command(message: Message, state: FSMContext):
 
         await message.answer(
             LEXICON['new_user'],
-            reply_markup=create_inline_keyboard(1, **{'register':'Зарегистрироваться'})
+            reply_markup=create_inline_keyboard(1, register=('Зарегистрироваться', 'success'))
         )
 
 
@@ -94,14 +94,14 @@ async def process_register_command(message: Message, state: FSMContext):
 
     logger.info(f"Пользователь {user_id} начинает процесс регистрации")
     agreement = FSInputFile(path=LEXICON['agreement_file'])
-    await message.answer_document(document=agreement, caption=LEXICON['starting_registration'], reply_markup=create_inline_keyboard(1, **{
-        'accept_terms':'ПРИНЯТЬ'
-    }))
+    await message.answer_document(document=agreement, caption=LEXICON['starting_registration'], reply_markup=create_inline_keyboard(1,
+        accept_terms=('ПРИНЯТЬ', 'success')
+    ))
     await state.set_state(Registration.waiting_agreement)
 
 @commands_router.message(Command('register'), IsRegistered())
 async def process_register_command_for_registered(message: Message, state: FSMContext):
-    await message.answer(LEXICON['register_command_for_registered'], reply_markup=KEYBOARDS.get(message.text))
+    await message.answer(LEXICON['register_command_for_registered'])
 
 
 
@@ -126,8 +126,8 @@ async def process_statistics_command(message: Message):
         year=current[0],
         quarter=current[1]
     ), reply_markup=create_inline_keyboard(2, **{
-     f'view_quarters_st:{current[0]}':f'К {current[0]} году',
-     f'stats_all':'За все время'
+     f'view_quarters_st:{current[0]}':(f'К {current[0]} году', 'primary'),
+     f'stats_all':('За все время', 'primary')
     }))
 
 
@@ -153,7 +153,7 @@ async def process_scheduled_command(message: Message):
         TemplateBuilder.build_closest_tournament(closest),
         reply_markup=create_inline_keyboard(
             1,
-            **{f'cancel_scheduled:{closest['tournament'].id}':'Отменить запись', 'all_scheduled': 'Все запланированные игры'}
+            **{f'cancel_scheduled:{closest['tournament'].id}':('Отменить запись', 'danger'), 'all_scheduled': ('Все запланированные игры', 'primary')}
         )
     )
 
@@ -162,7 +162,7 @@ async def process_scheduled_command(message: Message):
 @commands_router.message(Command('delete'))
 async def process_clean_command(message: Message):
     logger.info(f"Пользователь {message.from_user.id} запросил /delete")
-    await message.answer('Вы точно уверены, что хотите стереть всю информацию о себе?\nЭто действие нельзя отменить', reply_markup=create_inline_keyboard(1, **{'confirm_delete': 'Абсолютно'}))
+    await message.answer('Вы точно уверены, что хотите стереть всю информацию о себе?\nЭто действие нельзя отменить', reply_markup=create_inline_keyboard(1, **{'confirm_delete': ('Абсолютно', 'danger')}))
 
 @commands_router.message(Command('contacts'))
 async def process_contacts_command(message: Message):
@@ -180,8 +180,6 @@ async def process_add_tournament_command(message: Message, state: FSMContext):
 
 @commands_router.message(Command('play', 'scheduled'), IsNotRegistered())
 async def for_unregistered(message: Message):
-    await message.answer('Сначала необходимо зарегистрироваться!')
+    await message.answer(LEXICON['only_for_registered'])
 
-# @commands_router.message(Command('add_results'), IsAdmin())
-# async def process_add_results_command(message: Message, state: FSMContext):
-#     await m
+

@@ -13,6 +13,7 @@ from db.models.canceled_registrations import CanceledRegistration
 from db.models.tournaments import Tournament
 from db.models.tournaments_registration import TournamentRegistration
 from db.models.users import Users
+from db.models.users_registered import UsersRegistered
 from managers.user_manager import UserManager
 from schemas.tournament_schemas import TournamentRead, TournamentRegistrationBase, TournamentRegistrationReturn, \
     AddingTournament
@@ -315,16 +316,13 @@ class TournamentManager:
     async def set_dealer(
             session,
             tournament_id: uuid.UUID,
-            tg_nickname: str,
+            nickname: str,
             table_number: int | None = None
     ):
 
-        user_result = await session.execute(
-            select(Users.tg_id).where(Users.username == tg_nickname.lstrip('@'))
-        )
-        tg_id = user_result.scalar_one_or_none()
+        tg_id = await UserManager.find_tg_id_by_username(username=nickname)
         if not tg_id:
-            return f"❌ Пользователя с {tg_nickname} не существует!"
+            return f"❌ Пользователя с ником {nickname} не существует!"
 
         user_reg = await session.execute(
             select(TournamentRegistration).where(
@@ -337,9 +335,9 @@ class TournamentManager:
 
         if registration:
             if registration.box > 0:
-                return f"❌ Пользователь @{tg_nickname} уже зарегистрирован на этот турнир как игрок."
+                return f"❌ Пользователь {nickname} уже зарегистрирован на этот турнир как игрок."
             elif registration.table == table_number:
-                return f"❌ Пользователь @{tg_nickname} уже зарегистрирован на этот стол как крупье."
+                return f"❌ Пользователь {nickname} уже зарегистрирован на этот стол как крупье."
 
 
         tournament = await session.execute(
@@ -392,7 +390,7 @@ class TournamentManager:
         )
         session.add(new_record)
         await session.commit()
-        logger.info(f"Крупье @{tg_nickname} (tg_id={tg_id}) назначен на турнир {tournament_id}, стол {target_table}")
+        logger.info(f"Крупье c ником {nickname} (tg_id={tg_id}) назначен на турнир {tournament_id}, стол {target_table}")
         return target_table
 
     @staticmethod
@@ -411,11 +409,11 @@ class TournamentManager:
 
     @staticmethod
     @connection
-    async def check_user_tournament_registration(session, tournament_id: uuid.UUID | str, tg_nickname: str):
-        tg_id = await UserManager.find_tg_id_by_username(username=tg_nickname)
+    async def check_user_tournament_registration(session, tournament_id: uuid.UUID | str, nickname: str):
+        tg_id = await UserManager.find_tg_id_by_username(username=nickname)
 
         if not tg_id:
-            return f"❌ Пользователя с ником {tg_nickname} не существует!"
+            return f"❌ Пользователя с ником {nickname} не существует!"
 
         user_reg = await session.execute(
             select(TournamentRegistration).where(
@@ -426,7 +424,7 @@ class TournamentManager:
         )
 
         if not user_reg.scalar_one_or_none():
-            return f"❌ Пользователь с ником {tg_nickname} не участвовал в этом турнире!"
+            return f"❌ Пользователь с ником {nickname} не участвовал в этом турнире!"
 
         return tg_id
 

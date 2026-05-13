@@ -24,13 +24,18 @@ async def get_user_email(message: Message, state: FSMContext):
 
     except ValidationError:
         await message.reply(LEXICON['invalid_email'])
+        await message.react([ReactionTypeEmoji(emoji='👎')])
+        return
     if not await UserManager.check_email_exists(message.text):
         await state.update_data(email=message.text)
         await message.react([ReactionTypeEmoji(emoji='👍')])
-        await message.answer(LEXICON['ask_nickname'], reply_markup=create_inline_keyboard(1, **{'use_tg_nickname': 'Использовать тг-никнейм'}))
+        reply_markup = create_inline_keyboard(1, **{'use_tg_nickname': 'Использовать тг-никнейм'}) if message.from_user.username else None
+        await message.answer(LEXICON['ask_nickname'], reply_markup=reply_markup)
         await state.set_state(Registration.waiting_nickname)
     else:
         await message.reply(LEXICON['email_taken'])
+        await message.react([ReactionTypeEmoji(emoji='👎')])
+        return
 
 @message_router.message(StateFilter(Registration.waiting_nickname))
 async def get_user_nickname(message: Message, state: FSMContext):
@@ -38,6 +43,7 @@ async def get_user_nickname(message: Message, state: FSMContext):
         nickname = Nickname(nickname=message.text)
     except ValidationError:
         await message.answer(LEXICON['invalid_nickname'])
+        await message.react([ReactionTypeEmoji(emoji='👎')])
         return
     if not await UserManager.check_nickname_exists(message.text):
         await state.update_data(nickname=message.text)
@@ -57,6 +63,8 @@ async def get_user_nickname(message: Message, state: FSMContext):
         await state.update_data(data={'is_registered': True})
     else:
         await message.reply(LEXICON['nickname_taken'])
+        await message.react([ReactionTypeEmoji(emoji='👎')])
+        return
 
 
 @message_router.message(StateFilter(Admin.waiting_tournament_info))
@@ -71,7 +79,7 @@ async def add_tournament_info(message: Message, state: FSMContext):
         await message.react([ReactionTypeEmoji(emoji='👎')])
 
 
-@message_router.message(StateFilter(Admin.waiting_dealer))
+@message_router.message(StateFilter(Admin.waiting_dealer), IsAdmin())
 async def add_dealer(message: Message, state: FSMContext):
     items = message.text.split()
     if len(items) == 1:
@@ -92,6 +100,7 @@ async def add_dealer(message: Message, state: FSMContext):
         await state.clear()
     else:
         await message.reply(text=result, reply_markup=create_inline_keyboard(1, **{'delete_state': 'Отменить'}))
+        await message.react([ReactionTypeEmoji(emoji='👎')])
 
 @message_router.message(StateFilter(Admin.waiting_results), IsAdmin())
 async def add_result(message: Message, state: FSMContext):

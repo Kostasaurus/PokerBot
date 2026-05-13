@@ -3,6 +3,7 @@ from aiogram.fsm.state import State, StatesGroup
 class Registration(StatesGroup):
     waiting_email = State()
     waiting_nickname = State()
+    waiting_agreement = State()
 
 class Actions(StatesGroup):
     waiting_email = State()

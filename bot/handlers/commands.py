@@ -3,7 +3,7 @@ import logging
 from aiogram import Router
 from aiogram.filters import Command, CommandStart
 from aiogram.fsm.context import FSMContext
-from aiogram.types import Message
+from aiogram.types import Message, InputFile, FSInputFile
 
 from bot.FSM.FSM import Registration, Actions, Admin
 from bot.filters.user_filters import IsRegistered, IsNotRegistered, IsAdmin
@@ -93,8 +93,11 @@ async def process_register_command(message: Message, state: FSMContext):
     logger.info(f"Пользователь {user_id} запросил /register")
 
     logger.info(f"Пользователь {user_id} начинает процесс регистрации")
-    await message.answer(LEXICON['starting_registration'])
-    await state.set_state(Registration.waiting_email)
+    agreement = FSInputFile(path='bot/assets/ПОЛЬЗОВАТЕЛЬСКОЕ_СОГЛАШЕНИЕ.docx')
+    await message.answer_document(document=agreement, caption=LEXICON['starting_registration'], reply_markup=create_inline_keyboard(1, **{
+        'accept_terms':'ПРИНЯТЬ'
+    }))
+    await state.set_state(Registration.waiting_agreement)
 
 @commands_router.message(Command('register'), IsRegistered())
 async def process_register_command_for_registered(message: Message, state: FSMContext):
@@ -110,7 +113,7 @@ async def cmd_play(message: Message, state: FSMContext):
     markup = build_play_keyboard(data)
     await message.answer(("Нет предстоящих турниров." if not markup else "Список предстоящих турниров:"), reply_markup=markup)
 
-@commands_router.message(Command('stats'), IsRegistered())
+@commands_router.message(Command('stats'))
 async def process_statistics_command(message: Message):
     logger.info(f"Пользователь {message.from_user.id} запросил /statistics")
     current = get_current_quarter()
@@ -153,10 +156,7 @@ async def process_scheduled_command(message: Message):
             **{f'cancel_scheduled:{closest['tournament'].id}':'Отменить запись', 'all_scheduled': 'Все запланированные игры'}
         )
     )
-@commands_router.message(Command('scheduled'), IsNotRegistered())
-async def process_scheduled_command_unregistered(message: Message):
-    logger.info(f"Пользователь {message.from_user.id} запросил /statistics")
-    await message.answer(LEXICON['scheduled_for_unregistered'])
+
 
 
 @commands_router.message(Command('delete'))
@@ -177,6 +177,10 @@ async def process_rules_command(message: Message):
 async def process_add_tournament_command(message: Message, state: FSMContext):
     await message.answer(LEXICON['add_tournament'])
     await state.set_state(Admin.waiting_tournament_info)
+
+@commands_router.message(Command('play', 'scheduled'), IsNotRegistered())
+async def for_unregistered(message: Message):
+    await message.answer('Сначала необходимо зарегистрироваться!')
 
 # @commands_router.message(Command('add_results'), IsAdmin())
 # async def process_add_results_command(message: Message, state: FSMContext):

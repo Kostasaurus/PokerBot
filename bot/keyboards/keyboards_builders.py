@@ -152,7 +152,7 @@ def build_months_stats_keyboard(year: int) -> InlineKeyboardMarkup:
     change_year_button = {
         f'view_months_st:{change_year}': f'{'⬅' if change_year == 2025 else ''}{change_year:02d} год{'➡' if change_year == 2026 else ''}'}
     change_mode_button = {f'view_quarters_st:{year}': 'По кварталам'}
-    return create_inline_keyboard((4, 4, 4, 1, 1), **months, **change_year_button, **change_mode_button)
+    return create_inline_keyboard((4, 4, 4, 1, 2), **months, **change_year_button, **change_mode_button)
 
 def build_quarters_stats_keyboard(year: int) -> InlineKeyboardMarkup:
     quarters = {f"st_quarter:{year}:{quarter}": f"{QUARTERS_NOMINATIVE[quarter]}" for quarter in range(1, 5)}
@@ -161,4 +161,4 @@ def build_quarters_stats_keyboard(year: int) -> InlineKeyboardMarkup:
     change_year_button = {
         f'view_quarters_st:{change_year}': f'{'⬅' if change_year == 2025 else ''}{change_year:02d} год{'➡' if change_year == 2026 else ''}'}
     change_mode_button = {f'view_months_st:{year}': 'По месяцам'}
-    return create_inline_keyboard((2, 2, 1, 1), **quarters, **change_year_button, **change_mode_button)
+    return create_inline_keyboard((2, 2, 1, 2), **quarters, **change_year_button, **change_mode_button)

@@ -5,6 +5,7 @@ from sqlalchemy import insert, select, update, delete, func
 from sqlalchemy.exc import IntegrityError
 
 from core.core_dependency.db_dependency import connection
+from db.models.canceled_registrations import CanceledRegistration
 from db.models.tournaments import Tournament
 from db.models.tournaments_registration import TournamentRegistration
 from db.models.users import Users
@@ -159,13 +160,15 @@ class UserManager:
     @staticmethod
     @connection
     async def delete_user(session, user_id: int) -> None:
-        stmt1 = delete(TournamentRegistration).where(TournamentRegistration.tg_id == user_id)
-        stmt2 = delete(UsersRegistered).where(UsersRegistered.tg_id == user_id)
-        stmt3 = delete(Users).where(Users.tg_id == user_id)
+        stmt1 = delete(CanceledRegistration).where(CanceledRegistration.tg_id == user_id)
+        stmt2 = delete(TournamentRegistration).where(TournamentRegistration.tg_id == user_id)
+        stmt3 = delete(UsersRegistered).where(UsersRegistered.tg_id == user_id)
+        stmt4 = delete(Users).where(Users.tg_id == user_id)
         try:
             await session.execute(stmt1)
             await session.execute(stmt2)
             await session.execute(stmt3)
+            await session.execute(stmt4)
             await session.commit()
         except Exception:
             logger.exception('Error during deleting user')

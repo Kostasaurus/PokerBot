@@ -3,7 +3,7 @@ import logging
 from aiogram import Router, F
 from aiogram.filters import StateFilter
 from aiogram.fsm.context import FSMContext
-from aiogram.types import CallbackQuery
+from aiogram.types import CallbackQuery, FSInputFile
 from pydantic import ValidationError
 
 from bot.FSM.FSM import Registration, Actions, Admin
@@ -397,8 +397,12 @@ async def start_registration_unregistered(call: CallbackQuery, state: FSMContext
     await call.message.delete_reply_markup()
     logger.info("User %d started registration (not registered)", user_id)
 
-    await call.message.answer(LEXICON['starting_registration'])
-    await state.set_state(Registration.waiting_email)
+    agreement = FSInputFile(path='bot/assets/ПОЛЬЗОВАТЕЛЬСКОЕ_СОГЛАШЕНИЕ.docx')
+    await call.message.answer_document(document=agreement, caption=LEXICON['starting_registration'],
+                                  reply_markup=create_inline_keyboard(1, **{
+                                      'accept_terms': 'ПРИНЯТЬ'
+                                  }))
+    await state.set_state(Registration.waiting_agreement)
 
 # Inform already registered users
 @callback_router.callback_query(F.data == 'register', IsRegistered())
@@ -420,6 +424,12 @@ async def handle_tournaments_button(call: CallbackQuery):
 
     await call.message.answer(LEXICON[call.data], reply_markup=months_keyboard())
 
+@callback_router.callback_query(F.data == 'accept_terms')
+async def accept_terms(call: CallbackQuery, state: FSMContext):
+    await call.answer()
+    await call.message.delete_reply_markup()
+    await call.message.answer(LEXICON['ask_email'])
+    await state.set_state(Registration.waiting_email)
 
 
 # delete all user info after confirmation
@@ -428,7 +438,7 @@ async def confirm_delete_handler(call: CallbackQuery):
     await call.answer()
     await call.message.delete_reply_markup()
     await UserManager.delete_user(call.from_user.id)
-    await call.message.edit_text(text="Вся информация удалена")
+    await call.message.edit_text(text=LEXICON['deleted'])
 
 
 
@@ -570,7 +580,7 @@ async def show_quarter_stats(call: CallbackQuery, state: FSMContext):
 
     stats = await UserManager.get_all_users_stats(*get_quarter_range(year, quarter))
     await call.message.edit_text(text=TemplateBuilder.show_stats(tg_id=call.from_user.id, stats=stats, year=year, quarter=quarter),
-                                 reply_markup=create_inline_keyboard(1, **{f'view_quarters_st:{year}':f'К {year}'}))
+                                 reply_markup=create_inline_keyboard(2, **{f'view_quarters_st:{year}':f'К {year}', f'stats_all':'За все время'}))
 
 @callback_router.callback_query(F.data.startswith('st_month:'))
 async def show_month_stats(call: CallbackQuery, state: FSMContext):
@@ -580,7 +590,7 @@ async def show_month_stats(call: CallbackQuery, state: FSMContext):
 
     stats = await UserManager.get_all_users_stats(*get_date_range_for_month(year, month))
     await call.message.edit_text(text=TemplateBuilder.show_stats(tg_id=call.from_user.id, stats=stats, year=year, month=month),
-                                 reply_markup=create_inline_keyboard(1, **{f'view_months_st:{year}':f'К {year}'}))
+                                 reply_markup=create_inline_keyboard(2, **{f'view_months_st:{year}':f'К {year}', f'stats_all':'За все время'}))
 
 
 

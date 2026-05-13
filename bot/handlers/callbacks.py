@@ -397,7 +397,7 @@ async def start_registration_unregistered(call: CallbackQuery, state: FSMContext
     await call.message.delete_reply_markup()
     logger.info("User %d started registration (not registered)", user_id)
 
-    agreement = FSInputFile(path='bot/assets/ПОЛЬЗОВАТЕЛЬСКОЕ_СОГЛАШЕНИЕ.docx')
+    agreement = FSInputFile(path=LEXICON['agreement_file'])
     await call.message.answer_document(document=agreement, caption=LEXICON['starting_registration'],
                                   reply_markup=create_inline_keyboard(1, **{
                                       'accept_terms': 'ПРИНЯТЬ'

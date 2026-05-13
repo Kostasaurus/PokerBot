@@ -93,7 +93,7 @@ async def process_register_command(message: Message, state: FSMContext):
     logger.info(f"Пользователь {user_id} запросил /register")
 
     logger.info(f"Пользователь {user_id} начинает процесс регистрации")
-    agreement = FSInputFile(path='bot/assets/ПОЛЬЗОВАТЕЛЬСКОЕ_СОГЛАШЕНИЕ.docx')
+    agreement = FSInputFile(path=LEXICON['agreement_file'])
     await message.answer_document(document=agreement, caption=LEXICON['starting_registration'], reply_markup=create_inline_keyboard(1, **{
         'accept_terms':'ПРИНЯТЬ'
     }))

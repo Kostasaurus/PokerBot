@@ -428,7 +428,9 @@ async def handle_tournaments_button(call: CallbackQuery):
 async def accept_terms(call: CallbackQuery, state: FSMContext):
     await call.answer()
     await call.message.delete_reply_markup()
-    await call.message.answer(LEXICON['ask_nickname'])
+    reply_markup = create_inline_keyboard(1, **{
+        'use_tg_nickname': 'Использовать тг-никнейм'}) if call.from_user.username else None
+    await call.message.answer(LEXICON['ask_nickname'], reply_markup=reply_markup)
     await state.set_state(Registration.waiting_nickname)
 
 

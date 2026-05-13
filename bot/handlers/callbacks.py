@@ -428,8 +428,8 @@ async def handle_tournaments_button(call: CallbackQuery):
 async def accept_terms(call: CallbackQuery, state: FSMContext):
     await call.answer()
     await call.message.delete_reply_markup()
-    await call.message.answer(LEXICON['ask_email'])
-    await state.set_state(Registration.waiting_email)
+    await call.message.answer(LEXICON['ask_nickname'])
+    await state.set_state(Registration.waiting_nickname)
 
 
 # delete all user info after confirmation

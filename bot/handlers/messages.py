@@ -53,7 +53,6 @@ async def get_user_nickname(message: Message, state: FSMContext):
 
         await UserManager.register_user(user=RegisterUser(
             tg_id=message.from_user.id,
-            email=data['email'],
             nickname=data['nickname']
         ))
         await message.answer(LEXICON['user_registered'])

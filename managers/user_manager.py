@@ -113,7 +113,7 @@ class UserManager:
     @connection
     async def check_nickname_exists(session, nickname: str, exclude_tg_id: int | None = None) -> bool:
         query = select(UsersRegistered).where(
-            func.lower(UsersRegistered.nickname) == nickname.lower()
+            func.lower(UsersRegistered.nickname) == nickname.lower().replace('@', '')
         )
         if exclude_tg_id is not None:
             query = query.where(UsersRegistered.tg_id != exclude_tg_id)

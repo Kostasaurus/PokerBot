@@ -46,7 +46,7 @@ async def get_user_nickname(message: Message, state: FSMContext):
         await message.react([ReactionTypeEmoji(emoji='👎')])
         return
     if not await UserManager.check_nickname_exists(message.text):
-        await state.update_data(nickname=message.text)
+        await state.update_data(nickname=message.text.replace('@', ''))
         data = await state.get_data()
         await message.react([ReactionTypeEmoji(emoji='👍')])
 

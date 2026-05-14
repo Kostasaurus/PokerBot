@@ -460,7 +460,7 @@ async def use_tg_nickname_handler(call: CallbackQuery, state: FSMContext):
         await call.message.answer(LEXICON['invalid_nickname'])
         return
     if not await UserManager.check_nickname_exists(call.from_user.username):
-        await state.update_data(nickname=call.from_user.username)
+        await state.update_data(nickname=call.from_user.username.replace('@', ''))
         data = await state.get_data()
 
 

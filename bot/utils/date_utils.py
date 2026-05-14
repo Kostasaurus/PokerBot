@@ -60,7 +60,7 @@ def format_date_short_moscow(dt: datetime) -> str:
         dt = dt.replace(tzinfo=ZoneInfo("UTC"))
 
     moscow_dt = dt.astimezone(MOSCOW_TZ)
-    return f"{moscow_dt.day:02d}.{moscow_dt.month:02d}"
+    return f"{moscow_dt.day:02d}.{moscow_dt.month:02d}/{moscow_dt.hour:02d}:{moscow_dt.minute:02d}"
 
 def get_date_range_for_year(year: int):
     start = datetime(year, 1, 1)

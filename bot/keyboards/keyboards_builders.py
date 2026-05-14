@@ -112,7 +112,12 @@ def tournaments_list_keyboard(tournaments_data: list[dict], month: int, year: in
     back_button = {f"months:{year}": "Назад к месяцам"}
     buttons.update(back_button)
 
-    return create_inline_keyboard((2, 2, 1), **buttons)
+    count = math.floor((len(buttons) - 1) / 2)
+    width_list = [2 for i in range(count)]
+    width_list.append(1)
+    width = tuple(width_list)
+
+    return create_inline_keyboard(width, **buttons)
 
 
 def months_keyboard(year: int = 2026):
@@ -138,12 +143,12 @@ def build_play_keyboard(tournaments_data: list[dict]) -> InlineKeyboardMarkup | 
 
         # date_str = t.start_time.strftime('%d.%m.%Y %H:%M')
         if user_reg:
-            buttons.update({f'a_t:{t.id}:reg' : f'✅ {t.title}'})
+            buttons.update({f'a_t:{t.id}:reg' : f'✅ {format_date_short_moscow(t.start_time)}'})
 
         elif full:
-            buttons.update({f'tournament_is_full': (f'⛔ {t.title}', 'danger')})
+            buttons.update({f'tournament_is_full': (f'⛔ {format_date_short_moscow(t.start_time)}', 'danger')})
         else:
-            buttons.update({f'a_t:{t.id}:av' : (f'🎯 {t.title}', 'success')})
+            buttons.update({f'a_t:{t.id}:av' : (f'🎯 {format_date_short_moscow(t.start_time)}', 'success')})
 
     return create_inline_keyboard(2, **buttons)
 
@@ -154,7 +159,7 @@ def build_scheduled_keyboard(tournaments_data) -> InlineKeyboardMarkup | None:
     buttons = {}
     for item in tournaments_data:
         t = item['tournament']
-        buttons.update({f'cancel_tournament:{t.id}':(f'{t.title}', 'primary')})
+        buttons.update({f'cancel_tournament:{t.id}':(f'{format_date_short_moscow(t.start_time)}', 'primary')})
     buttons.update({'all_scheduled': 'Назад'})
     count = math.floor((len(buttons) - 1) / 2)
     width_list = [2 for i in range(count)]

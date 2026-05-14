@@ -83,12 +83,14 @@ class TemplateBuilder:
             user_registered = tournament['user_registered']
             if t.status == 'scheduled':
                 text += (
-                        f"• {format_datetime_moscow(t.start_time)}\n"
+                        f"• {t.title}\n"
+                        f"{format_datetime_moscow(t.start_time)}\n"
                 f"Записалось {reg_count}/{t.max_tables * 9} ({'и вы тоже' if user_registered else 'а вы нет'})\n\n"
                 )
             else:
                 text += (
-                    f"• {format_datetime_moscow(t.start_time)}\n"
+                    f"• {t.title}\n"
+                        f"{format_datetime_moscow(t.start_time)}\n"
                 "(завершён)\n\n"
                 )
         return text

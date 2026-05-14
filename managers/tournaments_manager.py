@@ -108,7 +108,7 @@ class TournamentManager:
         table_num = table_num if table_num > 0 else 1
         box = random.randint(1, 9)
 
-        while not TournamentManager.check_is_box_available(tournament_id=tournament_id, box=box, table=table_num):
+        while not await TournamentManager.check_is_box_available(tournament_id=tournament_id, box=box, table=table_num):
                 box = random.randint(1, 9)
 
 

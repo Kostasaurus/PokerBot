@@ -42,7 +42,7 @@ class TemplateBuilder:
             f"{t.title}\n"
             f"Начало {format_datetime_moscow(t.start_time)}\n"
             f"Стол: {table}\n"
-            f"{f'Бокс: {tournament.box}\n\n' if box > 0 else 'Вы крупье'}"
+            f"{f'Бокс: {box}\n\n' if box > 0 else 'Вы крупье'}"
                 )
         return text
 
@@ -95,6 +95,25 @@ class TemplateBuilder:
                 )
         return text
 
+    @staticmethod
+    def format_player(player: dict, highlight=False):
+        tg_id = player['tg_id']
+        nickname = player['nickname']
+        username = player.get('tg_username')
+
+
+        display_name = f'<a href="tg://user?id={tg_id}">{nickname}</a>'
+
+        base = f"{display_name}   {player['table']}-{player['box']}"
+
+        if highlight:
+            return f"➡️<b>{base}</b>⬅️"
+        return base
+
+
+
+
+
     @classmethod
     def show_stats(cls, tg_id: int, stats:list[dict], year: int | None = None, quarter: int | None = None, month: int | None = None):
 
@@ -128,6 +147,9 @@ class TemplateBuilder:
         return text
 
 
+
+
+
     @classmethod
     def show_tournament_players(cls, players: list[dict], tg_id: int):
         text = (
@@ -136,10 +158,8 @@ class TemplateBuilder:
                 )
 
         for player in players:
-            if player['tg_id'] == tg_id:
-                text += f"➡️<b>@{player['tg_username']} ({player['nickname']})   {player['table']}-{ f'{player['box']}' if player['box'] != 0 else 'Крупье'}</b>⬅️\n"
-            else:
-                text += f"@{player['tg_username']} ({player['nickname']}) -- {player['table']}-{ f'{player['box']}' if player['box'] != 0 else 'Крупье'}\n"
+            is_me = (player['tg_id'] == tg_id)
+            text += cls.format_player(player, highlight=is_me) + "\n"
         return text
 
 

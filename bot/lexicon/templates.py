@@ -56,7 +56,7 @@ class TemplateBuilder:
             "Информация о турнире:\n\n"
             f"{t.title}\n"
             f"Начало {format_datetime_moscow(t.start_time)}\n"
-            f"Записалось {reg_count}/{t.max_tables * 9}"
+            f"Записалось {reg_count}/{t.max_tables * 10}"
         )
         return text
 
@@ -82,10 +82,18 @@ class TemplateBuilder:
             reg_count = tournament['registered_count']
             user_registered = tournament['user_registered']
             if t.status == 'scheduled':
+                if user_registered and reg_count > 1:
+                    reg_info = '(вы тоже)'
+                elif not user_registered and reg_count:
+                    reg_info = '(а вы нет)'
+                elif user_registered and reg_count == 1:
+                    reg_info = '(это вы)'
+                else:
+                    reg_info = ''
                 text += (
                         f"• {t.title}\n"
                         f"{format_datetime_moscow(t.start_time)}\n"
-                f"Записалось {reg_count}/{t.max_tables * 9} ({'и вы тоже' if user_registered else 'а вы нет'})\n\n"
+                f"Записалось {reg_count}/{t.max_tables * 10} {reg_info}\n\n"
                 )
             else:
                 text += (
@@ -117,6 +125,9 @@ class TemplateBuilder:
     @classmethod
     def show_stats(cls, tg_id: int, stats:list[dict], year: int | None = None, quarter: int | None = None, month: int | None = None):
 
+        if not stats:
+            return 'Тут пока пусто...'
+
         if not year:
             text = f"<b>Статистика за все время</b>\n\n"
         elif year and not quarter and not month:
@@ -136,6 +147,10 @@ class TemplateBuilder:
 
     @classmethod
     def show_tournament_stats(cls, tournament, results: list[dict], tg_id: int):
+
+        if not results:
+            return 'Тут пока пусто...'
+
         text = f"<b>{tournament.title}</b>\n\n"
 
         for user in results:

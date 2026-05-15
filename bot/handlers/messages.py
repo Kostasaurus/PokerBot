@@ -88,7 +88,7 @@ async def add_dealer(message: Message, state: FSMContext):
         nick = items[0].replace('@', '')
         table = int(items[1])
     else:
-        await message.reply(f"Неверный формат!\nПеределывай!", reply_markup=create_inline_keyboard(1, delete_state=('Отменить', 'danger')))
+        await message.reply(f"Неверный формат!\nПеределывай!")
         await message.react([ReactionTypeEmoji(emoji='👎')])
         return
     data = await state.get_data()
@@ -98,7 +98,7 @@ async def add_dealer(message: Message, state: FSMContext):
         await message.answer(f'Добавлен дилер {nick}\nСтол {result}')
         await state.clear()
     else:
-        await message.reply(text=result, reply_markup=create_inline_keyboard(1, delete_state=('Отменить', 'danger')))
+        await message.reply(text=result)
         await message.react([ReactionTypeEmoji(emoji='👎')])
 
 @message_router.message(StateFilter(Admin.waiting_results), IsAdmin())

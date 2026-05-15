@@ -72,7 +72,7 @@ def tournaments_list_keyboard(tournaments_data: list[dict], month: int, year: in
     for item in tournaments_data:
         t = item['tournament']
         reg = item['registered_count']
-        total = t.max_tables * 9
+        total = t.max_tables * 10
         user_reg = item['user_registered']
         is_scheduled = t.status == 'scheduled' and (t.start_time + timedelta(hours=2) > datetime.now(timezone.utc))
 
@@ -109,7 +109,7 @@ def tournaments_list_keyboard(tournaments_data: list[dict], month: int, year: in
 
         buttons[callback_data] = (button_text, style)
 
-    back_button = {f"months:{year}": "Назад к месяцам"}
+    back_button = {f"months:{year}": '⬅ Назад к месяцам'}
     buttons.update(back_button)
 
     count = math.floor((len(buttons) - 1) / 2)
@@ -125,7 +125,7 @@ def months_keyboard(year: int = 2026):
     change_year = year - 1 if year == 2026 else year + 1
 
     change_year_button = {f'year:{change_year}':f'{'⬅' if change_year == 2025 else ''}Турниры за {change_year:02d} год{'➡' if change_year == 2026 else ''}'}
-    return create_inline_keyboard((4,4,4,1), **months, **change_year_button)
+    return create_inline_keyboard((4,4,4,1), **months)
 
 
 def build_play_keyboard(tournaments_data: list[dict]) -> InlineKeyboardMarkup | tuple[str, InlineKeyboardMarkup] | None:
@@ -136,7 +136,7 @@ def build_play_keyboard(tournaments_data: list[dict]) -> InlineKeyboardMarkup | 
 
     for item in tournaments_data:
         t = item['tournament']
-        total = t.max_tables * 9
+        total = t.max_tables * 10
         reg = item['registered_count']
         full = reg >= total
         user_reg = item['user_registered']
@@ -160,7 +160,7 @@ def build_scheduled_keyboard(tournaments_data) -> InlineKeyboardMarkup | None:
     for item in tournaments_data:
         t = item['tournament']
         buttons.update({f'cancel_tournament:{t.id}':(f'{format_date_short_moscow(t.start_time)}', 'primary')})
-    buttons.update({'all_scheduled': 'Назад'})
+    buttons.update({'all_scheduled': '⬅ Назад'})
     count = math.floor((len(buttons) - 1) / 2)
     width_list = [2 for i in range(count)]
     width_list.append(1)
@@ -175,7 +175,7 @@ def build_months_stats_keyboard(year: int) -> InlineKeyboardMarkup:
     change_year_button = {
         f'view_months_st:{change_year}': f'{'⬅' if change_year == 2025 else ''}{change_year:02d} год{'➡' if change_year == 2026 else ''}'}
     change_mode_button = {f'view_quarters_st:{year}': 'По кварталам'}
-    return create_inline_keyboard((4, 4, 4, 2), **months, **change_year_button, **change_mode_button)
+    return create_inline_keyboard((4, 4, 4, 2), **months, **change_mode_button)
 
 def build_quarters_stats_keyboard(year: int) -> InlineKeyboardMarkup:
     quarters = {f"st_quarter:{year}:{quarter}": (f"{QUARTERS_NOMINATIVE[quarter]}", 'primary') for quarter in range(1, 5)}
@@ -184,4 +184,4 @@ def build_quarters_stats_keyboard(year: int) -> InlineKeyboardMarkup:
     change_year_button = {
         f'view_quarters_st:{change_year}': f'{'⬅' if change_year == 2025 else ''}{change_year:02d} год{'➡' if change_year == 2026 else ''}'}
     change_mode_button = {f'view_months_st:{year}': 'По месяцам'}
-    return create_inline_keyboard((2, 2, 2), **quarters, **change_year_button, **change_mode_button)
+    return create_inline_keyboard((2, 2, 2), **quarters, **change_mode_button)

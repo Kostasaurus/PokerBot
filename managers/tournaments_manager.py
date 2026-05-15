@@ -84,7 +84,7 @@ class TournamentManager:
     @connection
     async def check_is_box_available(session, tournament_id: int, box: int, table: int):
         stmt = select(func.count()).where(TournamentRegistration.tournament_id == tournament_id, TournamentRegistration.table == table, TournamentRegistration.box == box)
-        occupied = await session.execute(stmt)
+        occupied = (await session.execute(stmt)).scalar()
         return True if occupied < 1 else False
 
 
@@ -101,7 +101,7 @@ class TournamentManager:
 
         count_query = select(func.count()).where(TournamentRegistration.tournament_id == tournament_id)
         count = (await session.execute(count_query)).scalar()
-        if count >= tournament.max_tables * 9:
+        if count >= tournament.max_tables * 10:
             raise ValueError("Все места заняты")
 
         table_num = math.ceil(count / 9)

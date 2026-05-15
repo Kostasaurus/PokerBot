@@ -34,7 +34,7 @@ async def back_to_months(call: CallbackQuery, state: FSMContext):
     await call.message.delete_reply_markup()
     _, year = call.data.split(":")
     year = int(year)
-    await call.message.edit_text(call.message.text, reply_markup=months_keyboard(year=year))
+    await call.message.edit_text(LEXICON['tournaments'], reply_markup=months_keyboard(year=year))
 
 # Switch between years (2025/2026) and show month grid
 @callback_router.callback_query(F.data.startswith('year:'))
@@ -222,7 +222,7 @@ async def quick_register_from_play(call: CallbackQuery):
         "Подтвердить запись на турнир?",
         reply_markup=create_inline_keyboard(1, **{
             f"confirmed:{tournament_id}": ('Подтвердить', 'success'),
-            "play": '⬅ Назад'
+            f"a_t:{tournament_id}:av": '⬅ Назад'
         })
     )
 
@@ -319,6 +319,7 @@ async def cancel_tournament_from_menu(call: CallbackQuery):
 @callback_router.callback_query(F.data == "scheduled")
 async def back_to_scheduled(call: CallbackQuery):
     user_id = call.from_user.id
+    await call.answer()
     logger.info(f"Пользователь {user_id} запросил /scheduled")
 
     tournaments = await TournamentManager.get_tournaments_with_status(

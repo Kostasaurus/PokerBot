@@ -1,4 +1,4 @@
-from bot.utils.date_utils import format_datetime_moscow, MONTHS_NOMINATIVE
+from bot.utils.date_utils import format_datetime_moscow, MONTHS_NOMINATIVE, format_date_short_moscow
 
 
 class TemplateBuilder:
@@ -125,9 +125,7 @@ class TemplateBuilder:
     @classmethod
     def show_stats(cls, tg_id: int, stats:list[dict], year: int | None = None, quarter: int | None = None, month: int | None = None):
 
-        if not stats:
-            return 'Тут пока пусто...'
-
+        text = ''
         if not year:
             text = f"<b>Статистика за все время</b>\n\n"
         elif year and not quarter and not month:
@@ -136,6 +134,10 @@ class TemplateBuilder:
             text = f"<b>Статистика за {quarter}-й квартал {year} года</b>\n\n"
         elif month:
             text = f"<b>Статистика за {MONTHS_NOMINATIVE[month]} {year} года</b>\n\n"
+
+        if not stats:
+            text += 'Тут пока пусто...'
+            return text
 
         for user in stats:
             if user['tg_id'] == tg_id:
@@ -148,10 +150,12 @@ class TemplateBuilder:
     @classmethod
     def show_tournament_stats(cls, tournament, results: list[dict], tg_id: int):
 
-        if not results:
-            return 'Тут пока пусто...'
 
-        text = f"<b>{tournament.title}</b>\n\n"
+        text = f"<b>{tournament.title}</b>\n{format_date_short_moscow(tournament.start_time)}\n\n"
+
+        if not results:
+            text += 'Тут пока пусто...'
+            return text
 
         for user in results:
             if user['tg_id'] == tg_id:
@@ -172,6 +176,9 @@ class TemplateBuilder:
             f"Tг-ник (ник)   стол-бокс\n\n"
                 )
 
+        if not players:
+            text += 'Тут пока пусто...'
+            return text
         for player in players:
             is_me = (player['tg_id'] == tg_id)
             text += cls.format_player(player, highlight=is_me) + "\n"

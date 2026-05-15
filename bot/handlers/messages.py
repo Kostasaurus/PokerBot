@@ -96,7 +96,6 @@ async def add_dealer(message: Message, state: FSMContext):
     result =  await TournamentManager.set_dealer(tournament_id=tournament_id, nickname=nick, table_number=table)
     if isinstance(result, int):
         await message.answer(f'Добавлен дилер {nick}\nСтол {result}')
-        await state.clear()
     else:
         await message.reply(text=result)
         await message.react([ReactionTypeEmoji(emoji='👎')])
@@ -125,6 +124,10 @@ async def add_result(message: Message, state: FSMContext):
         await message.react([ReactionTypeEmoji(emoji='👍')])
     else:
         await message.reply(tg_id)
+
+@message_router.message()
+async def answer_to_random_text(message: Message):
+    await message.react([ReactionTypeEmoji(emoji='🤨')])
 
 
 

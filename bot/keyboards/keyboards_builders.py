@@ -150,6 +150,9 @@ def build_play_keyboard(tournaments_data: list[dict]) -> InlineKeyboardMarkup | 
         else:
             buttons.update({f'a_t:{t.id}:av' : (f'🎯 {format_date_short_moscow(t.start_time)}', 'success')})
 
+        if len(buttons) == 10:
+            break
+
     return create_inline_keyboard(2, **buttons)
 
 def build_scheduled_keyboard(tournaments_data) -> InlineKeyboardMarkup | None:

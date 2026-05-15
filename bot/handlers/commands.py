@@ -3,12 +3,11 @@ import logging
 from aiogram import Router
 from aiogram.filters import Command, CommandStart
 from aiogram.fsm.context import FSMContext
-from aiogram.types import Message, InputFile, FSInputFile
+from aiogram.types import Message, FSInputFile
 
 from bot.FSM.FSM import Registration, Actions, Admin
 from bot.filters.user_filters import IsRegistered, IsNotRegistered, IsAdmin
 from bot.keyboards.keyboards_builders import create_inline_keyboard, months_keyboard, build_play_keyboard
-from bot.keyboards.keyboards_dict import KEYBOARDS
 from bot.keyboards.set_menu import set_user_menu
 from bot.lexicon.phrases import LEXICON
 from bot.lexicon.templates import TemplateBuilder

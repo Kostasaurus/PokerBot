@@ -236,7 +236,7 @@ async def handle_play_button(call: CallbackQuery):
     data = await TournamentManager.get_tournaments_with_status(user_id=call.from_user.id)
     markup = build_play_keyboard(data)
     await call.message.edit_text(
-        "Нет предстоящих турниров." if not markup else "Список предстоящих турниров:",
+        "Нет предстоящих турниров." if not markup else "Список ближайших турниров:",
         reply_markup=markup
     )
 

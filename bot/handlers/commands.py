@@ -110,7 +110,7 @@ async def cmd_play(message: Message, state: FSMContext):
     logger.info(f"Пользователь {message.from_user.id} запросил /play")
     data = await TournamentManager.get_tournaments_with_status(user_id=message.from_user.id)
     markup = build_play_keyboard(data)
-    await message.answer(("Нет предстоящих турниров." if not markup else "Список ближайших турниров:"), reply_markup=markup)
+    await message.answer(("Нет предстоящих турниров." if not markup else "Ближайшие турниры:"), reply_markup=markup)
 
 @commands_router.message(Command('stats'))
 async def process_statistics_command(message: Message):

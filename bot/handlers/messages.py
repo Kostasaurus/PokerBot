@@ -95,7 +95,7 @@ async def add_dealer(message: Message, state: FSMContext):
     tournament_id = data['dealer_tournament_id']
     result =  await TournamentManager.set_dealer(tournament_id=tournament_id, nickname=nick, table_number=table)
     if isinstance(result, int):
-        await message.answer(f'Добавлен дилер {nick}\nСтол {result}')
+        await message.answer(f'Добавлен крупье {nick}\nСтол {result}')
     else:
         await message.reply(text=result)
         await message.react([ReactionTypeEmoji(emoji='👎')])

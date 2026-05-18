@@ -16,6 +16,7 @@ from bot.keyboards.keyboards_builders import (
 from bot.lexicon.phrases import LEXICON
 from bot.lexicon.templates import TemplateBuilder
 from bot.utils.date_utils import get_date_range_for_year, get_quarter_range, get_date_range_for_month
+from core.settings import settings
 from managers.tournaments_manager import TournamentManager
 from managers.user_manager import UserManager
 from schemas.user_schemas import RegisterUser, Nickname
@@ -87,11 +88,11 @@ async def show_tournament_detail_handler(call: CallbackQuery, state: FSMContext)
     logger.info("User %d viewing tournament %s (status=%s)", call.from_user.id, tournament_id, status)
 
     tournament_info = await TournamentManager.get_tournaments_with_status(tournament_id=tournament_id, user_id=call.from_user.id, only_future=False, month=month, year=year)
-    tournament = tournament_info['tournament']
     if not tournament_info:
         await call.message.edit_text(text='Пока нет информации о турнире', reply_markup=create_inline_keyboard(1, **{f'month:{year}:{month}': '⬅ к месяцу'}))
         return
 
+    tournament = tournament_info['tournament']
     if status == 'av':
         reg_count = tournament_info['registered_count']
 
@@ -101,7 +102,7 @@ async def show_tournament_detail_handler(call: CallbackQuery, state: FSMContext)
         reply_markup = create_inline_keyboard(1, **{
             f'play:{year}:{month}:{tournament_id}': ('Участвовать', 'success'),
             f'month:{year}:{month}': '⬅ к месяцу'
-        }) if not IsAdmin() else create_inline_keyboard(1, **{
+        }) if call.from_user.id not in settings.bot.ADMINS else create_inline_keyboard(1, **{
             f'ps:{year}:{month}:{tournament_id}:{status}': ('Участники', 'primary'),
              f'd:t:{year}:{month}:{tournament_id}:{status}': ('Добавить крупье', 'primary'),
             f'play:{year}:{month}:{tournament_id}': ('Участвовать', 'success'),
@@ -113,7 +114,7 @@ async def show_tournament_detail_handler(call: CallbackQuery, state: FSMContext)
         reply_markup = create_inline_keyboard(1, **{
             f'c_t:{year}:{month}:{tournament_id}': ('Отменить запись', 'danger'),
             f'month:{year}:{month}': '⬅ к месяцу'
-        }) if not IsAdmin() else create_inline_keyboard(1, **{
+        }) if call.from_user.id not in settings.bot.ADMINS else create_inline_keyboard(1, **{
             f'ps:{year}:{month}:{tournament_id}:{status}': ('Участники', 'primary'),
             f'd:t:{year}:{month}:{tournament_id}:{status}': ('Добавить крупье', 'primary'),
             f'c_t:{year}:{month}:{tournament_id}': ('Отменить запись', 'danger'),
@@ -124,7 +125,7 @@ async def show_tournament_detail_handler(call: CallbackQuery, state: FSMContext)
         text=TemplateBuilder.show_tournament_stats(tournament=tournament, results=results, tg_id=call.from_user.id)
         reply_markup = create_inline_keyboard(1, **{
             f'month:{year}:{month}': '⬅ к месяцу',
-        }) if not IsAdmin() else create_inline_keyboard(1, **{
+        }) if call.from_user.id not in settings.bot.ADMINS else create_inline_keyboard(1, **{
             f'r:{year}:{month}:{tournament_id}:{status}':('Добавить результат', 'primary'),
             f'month:{year}:{month}': '⬅ к месяцу'
         })
@@ -185,7 +186,7 @@ async def show_active_tournament_detail(call: CallbackQuery):
         reply_markup=create_inline_keyboard(1, **{
             f"cancel_tournament:{tournament_id}": ('Отменить запись', 'danger'),
             'play': '⬅ Назад'
-        }) if not IsAdmin() else create_inline_keyboard(1, **{
+        }) if call.from_user.id not in settings.bot.ADMINS else create_inline_keyboard(1, **{
             f'ps:{tournament_id}:{status}': ('Участники', 'primary'),
             f'd:a_t:{tournament_id}:{status}': ('Добавить крупье', 'primary'),
             f"cancel_tournament:{tournament_id}": ('Отменить запись', 'danger'),
@@ -200,7 +201,7 @@ async def show_active_tournament_detail(call: CallbackQuery):
         reply_markup=create_inline_keyboard(1, **{
             f"play_command:{tournament_id}": ('Участвовать', 'success'),
             'play': '⬅ Назад'
-        }) if not IsAdmin() else create_inline_keyboard(1, **{
+        }) if call.from_user.id not in settings.bot.ADMINS else create_inline_keyboard(1, **{
             f'ps:{tournament_id}:{status}': ('Участники', 'primary'),
             f'd:a_t:{tournament_id}:{status}': ('Добавить крупье', 'primary'),
             f"play_command:{tournament_id}": ('Участвовать', 'success'),

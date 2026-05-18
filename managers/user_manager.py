@@ -57,47 +57,47 @@ class UserManager:
             logger.error("Ошибка при создании пользователя tg_id=%d: %s", user.tg_id, e, exc_info=True)
             raise
 
-    @staticmethod
-    @connection
-    async def register_user(session, user: RegisterUser):
-        logger.info("Регистрация пользователя: tg_id=%d, email=%s, nickname=%s",
-                    user.tg_id, user.email, user.nickname)
-        stmt1 = insert(UsersRegistered).values(**user.model_dump())
-        stmt2 = (
-            update(Users)
-            .where(Users.tg_id == user.tg_id)
-            .values(is_registered=True)
-        )
-        try:
-            await session.execute(stmt1)
-            await session.execute(stmt2)
-            await session.commit()
-            logger.info("Пользователь tg_id=%d успешно зарегистрирован", user.tg_id)
-        except IntegrityError as e:
-            await session.rollback()
-            orig = e.orig
-            constraint_name = getattr(orig, 'constraint_name', None)
-            if constraint_name is None:
-                msg = str(orig).lower()
-                if 'email' in msg:
-                    constraint_name = 'users_email_key'
-                elif 'nickname' in msg:
-                    constraint_name = 'users_nickname_key'
-
-            if constraint_name in ('users_email_key', 'uq_users_email'):
-                logger.warning("Регистрация: email '%s' уже занят", user.email)
-                raise ValueError("Пользователь с таким email уже существует")
-            elif constraint_name in ('users_nickname_key', 'uq_users_nickname'):
-                logger.warning("Регистрация: никнейм '%s' уже занят", user.nickname)
-                raise ValueError("Этот никнейм уже занят")
-            else:
-                logger.error("Неизвестная ошибка целостности при регистрации пользователя tg_id=%d: %s",
-                             user.tg_id, e, exc_info=True)
-                raise
-        except Exception as e:
-            await session.rollback()
-            logger.error("Ошибка при регистрации пользователя tg_id=%d: %s", user.tg_id, e, exc_info=True)
-            raise
+    # @staticmethod
+    # @connection
+    # async def register_user(session, user: RegisterUser):
+    #     logger.info("Регистрация пользователя: tg_id=%d, email=%s, nickname=%s",
+    #                 user.tg_id, user.email, user.nickname)
+    #     stmt1 = insert(UsersRegistered).values(**user.model_dump())
+    #     stmt2 = (
+    #         update(Users)
+    #         .where(Users.tg_id == user.tg_id)
+    #         .values(is_registered=True)
+    #     )
+    #     try:
+    #         await session.execute(stmt1)
+    #         await session.execute(stmt2)
+    #         await session.commit()
+    #         logger.info("Пользователь tg_id=%d успешно зарегистрирован", user.tg_id)
+    #     except IntegrityError as e:
+    #         await session.rollback()
+    #         orig = e.orig
+    #         constraint_name = getattr(orig, 'constraint_name', None)
+    #         if constraint_name is None:
+    #             msg = str(orig).lower()
+    #             if 'email' in msg:
+    #                 constraint_name = 'users_email_key'
+    #             elif 'nickname' in msg:
+    #                 constraint_name = 'users_nickname_key'
+    #
+    #         if constraint_name in ('users_email_key', 'uq_users_email'):
+    #             logger.warning("Регистрация: email '%s' уже занят", user.email)
+    #             raise ValueError("Пользователь с таким email уже существует")
+    #         elif constraint_name in ('users_nickname_key', 'uq_users_nickname'):
+    #             logger.warning("Регистрация: никнейм '%s' уже занят", user.nickname)
+    #             raise ValueError("Этот никнейм уже занят")
+    #         else:
+    #             logger.error("Неизвестная ошибка целостности при регистрации пользователя tg_id=%d: %s",
+    #                          user.tg_id, e, exc_info=True)
+    #             raise
+    #     except Exception as e:
+    #         await session.rollback()
+    #         logger.error("Ошибка при регистрации пользователя tg_id=%d: %s", user.tg_id, e, exc_info=True)
+    #         raise
 
 
     @staticmethod

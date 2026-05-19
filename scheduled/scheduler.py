@@ -4,6 +4,6 @@ from managers.tournaments_manager import TournamentManager
 
 scheduler = AsyncIOScheduler()
 
-@scheduler.scheduled_job('interval', minutes=100)
+@scheduler.scheduled_job('interval', minutes=5)
 async def scheduled_status_update():
     await TournamentManager.update_tournaments_status()

@@ -492,6 +492,20 @@ class TournamentManager:
         # return updated
 
 
+    @staticmethod
+    @connection
+    async def count_all_tournaments(session):
+
+        tournaments = (
+            await session.execute(
+                select(func.count()).select_from(Tournament)
+            )
+        ).scalar()
+
+        return tournaments
+
+
+
 
 
 

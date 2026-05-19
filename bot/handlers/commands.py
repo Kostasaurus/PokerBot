@@ -158,7 +158,7 @@ async def process_scheduled_command(message: Message):
 
 
 
-@commands_router.message(Command('delete'))
+@commands_router.message(Command('delete'), IsAdmin())
 async def process_clean_command(message: Message):
     logger.info(f"Пользователь {message.from_user.id} запросил /delete")
     await message.answer('Вы точно уверены, что хотите стереть всю информацию о себе?\nЭто действие нельзя отменить', reply_markup=create_inline_keyboard(1, **{'confirm_delete': ('Абсолютно', 'danger')}))

@@ -13,7 +13,7 @@ class TemplateBuilder:
             f"{t.title}\n\n"
             f"Начало {format_datetime_moscow(t.start_time)}\n"
             f"Стол: {table}\n"
-            f"{f'Бокс: {box}\n\n' if box > 0 else 'Вы крупье'}"
+            f"{f'Бокс: {box}\n\n' if box > 0 else 'Вы крупье\n'}"
             f"Удачи!"
         )
 
@@ -115,7 +115,7 @@ class TemplateBuilder:
         base = f"{display_name}   {player['table']}-{player['box']}"
 
         if highlight:
-            return f"➡️<b>{base}</b>⬅️"
+            return f"<b>{base}</b>"
         return base
 
 
@@ -141,7 +141,7 @@ class TemplateBuilder:
 
         for user in stats:
             if user['tg_id'] == tg_id:
-                text += f"➡️<b>{user['username']} - {user['total']}</b>⬅️\n"
+                text += f"<b>{user['username']} - {user['total']}</b>\n"
             else:
                 text += f"{user['username']} - {user['total']}\n"
 
@@ -159,7 +159,7 @@ class TemplateBuilder:
 
         for user in results:
             if user['tg_id'] == tg_id:
-                text += f"➡️<b>{user['username']} - {user['total']}</b>⬅️\n"
+                text += f"<b>{user['username']} - {user['total']}</b>\n"
             else:
                 text += f"{user['username']} - {user['total']}\n"
 

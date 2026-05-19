@@ -12,7 +12,11 @@ async def process_tournament_info(message_text: str):
         title, max_tables, raw_start_time = info
     elif len(info) == 2:
         title, raw_start_time = info
-        max_tables = 3
+        max_tables = 4
+    elif len(info) == 1:
+        raw_start_time = info
+        max_tables = 4    
+        title = raw_start_time
     else:
         return f"Неверный формат!\nПеределывай!"
 

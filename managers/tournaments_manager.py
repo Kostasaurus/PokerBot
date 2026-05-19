@@ -7,6 +7,7 @@ from datetime import datetime, timezone, timedelta
 
 from sqlalchemy import func, extract
 from sqlalchemy import select, insert, delete, case, update
+from sqlalchemy.exc import IntegrityError
 
 from core.core_dependency.db_dependency import connection
 from db.models.canceled_registrations import CanceledRegistration
@@ -19,6 +20,36 @@ from schemas.tournament_schemas import TournamentRead, TournamentRegistrationBas
     AddingTournament
 
 logger = logging.getLogger(__name__)
+
+PLAYERS_PER_TABLE = 9
+
+
+async def _is_box_available(
+    session,
+    tournament_id: uuid.UUID,
+    box: int,
+    table: int,
+) -> bool:
+    occupied = (
+        await session.execute(
+            select(func.count()).where(
+                TournamentRegistration.tournament_id == tournament_id,
+                TournamentRegistration.table == table,
+                TournamentRegistration.box == box,
+            )
+        )
+    ).scalar()
+    return occupied < 1
+
+
+async def _pick_player_box(session, tournament_id: uuid.UUID, table: int) -> int | None:
+    boxes = list(range(1, PLAYERS_PER_TABLE + 1))
+    random.shuffle(boxes)
+    for box in boxes:
+        if await _is_box_available(session, tournament_id, box, table):
+            return box
+    return None
+
 
 class TournamentManager:
 
@@ -82,47 +113,64 @@ class TournamentManager:
 
     @staticmethod
     @connection
-    async def check_is_box_available(session, tournament_id: int, box: int, table: int):
-        stmt = select(func.count()).where(TournamentRegistration.tournament_id == tournament_id, TournamentRegistration.table == table, TournamentRegistration.box == box)
-        occupied = (await session.execute(stmt)).scalar()
-        return True if occupied < 1 else False
-
-
-    @staticmethod
-    @connection
-    async def register_user_for_tournament(session, user_id: int, tournament_id: int):
-        result = await session.execute(select(Tournament).where(Tournament.id == tournament_id))
-        logger.info('checking tournament')
-        tournament_result = result.scalar_one_or_none()
-        if not tournament_result or tournament_result.status != 'scheduled':
+    async def register_user_for_tournament(session, user_id: int, tournament_id: uuid.UUID | str):
+        tournament_result = (
+            await session.execute(
+                select(Tournament)
+                .where(Tournament.id == tournament_id)
+                .with_for_update()
+            )
+        ).scalar_one_or_none()
+        if not tournament_result or tournament_result.status != "scheduled":
             raise ValueError("Турнир недоступен для записи")
         tournament = TournamentRead(**tournament_result.__dict__)
 
+        already_registered = (
+            await session.execute(
+                select(TournamentRegistration.id).where(
+                    TournamentRegistration.tg_id == user_id,
+                    TournamentRegistration.tournament_id == tournament_id,
+                )
+            )
+        ).scalar_one_or_none()
+        if already_registered is not None:
+            raise ValueError("Вы уже записаны на этот турнир")
 
-        count_query = select(func.count()).where(TournamentRegistration.tournament_id == tournament_id)
-        count = (await session.execute(count_query)).scalar()
-        if count >= tournament.max_tables * 10:
+        max_seats = tournament.max_tables * 10
+        count = (
+            await session.execute(
+                select(func.count()).where(
+                    TournamentRegistration.tournament_id == tournament_id
+                )
+            )
+        ).scalar()
+        if count >= max_seats:
             raise ValueError("Все места заняты")
 
-        table_num = math.ceil(count / 9)
-        table_num = table_num if table_num > 0 else 1
-        box = random.randint(1, 9)
-
-        while not await TournamentManager.check_is_box_available(tournament_id=tournament_id, box=box, table=table_num):
-                box = random.randint(1, 9)
-
-
-
+        table_num = max(1, math.ceil(count / PLAYERS_PER_TABLE))
+        box = await _pick_player_box(session, tournament_id, table_num)
+        if box is None:
+            raise ValueError("Нет свободных мест")
 
         registration = TournamentRegistrationBase(
             tg_id=user_id,
             tournament_id=tournament_id,
             table=table_num,
-            box=box
+            box=box,
         )
-        await session.execute(insert(TournamentRegistration).values(**registration.model_dump()))
-        await session.commit()
-        logger.info(f"Пользователь {user_id} записан на турнир {tournament_id}, бокс {box} table {table_num}")
+        try:
+            await session.execute(
+                insert(TournamentRegistration).values(**registration.model_dump())
+            )
+            await session.commit()
+        except IntegrityError:
+            await session.rollback()
+            raise ValueError("Вы уже записаны на этот турнир") from None
+
+        logger.info(
+            "Пользователь %d записан на турнир %s, бокс %d table %d",
+            user_id, tournament_id, box, table_num,
+        )
         return TournamentRegistrationReturn(
             tournament_id=tournament_id,
             table=table_num,

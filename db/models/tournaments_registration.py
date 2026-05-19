@@ -1,6 +1,6 @@
 import uuid
 
-from sqlalchemy import String, Integer, ForeignKey, UUID
+from sqlalchemy import String, Integer, ForeignKey, UUID, UniqueConstraint
 from sqlalchemy.orm import Mapped, mapped_column
 
 from db.models.base import Base
@@ -8,6 +8,9 @@ from db.models.base import Base
 
 class TournamentRegistration(Base):
     __tablename__ = "tournaments_registration"
+    __table_args__ = (
+        UniqueConstraint("tg_id", "tournament_id", name="uq_tournament_registration_user"),
+    )
 
     id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     tg_id: Mapped[int] = mapped_column(ForeignKey("users_info.tg_id", ondelete="CASCADE"), nullable=False)

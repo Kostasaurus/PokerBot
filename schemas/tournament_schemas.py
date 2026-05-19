@@ -48,6 +48,6 @@ class ActivesTournamentsCheck(BaseModel):
 
 class AddingTournament(BaseModel):
     title: str
-    max_tables: int = 3
+    max_tables: int = 4
     start_time: datetime.datetime
 

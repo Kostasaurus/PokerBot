@@ -83,11 +83,11 @@ class TemplateBuilder:
             user_registered = tournament['user_registered']
             if t.status == 'scheduled':
                 if user_registered and reg_count > 1:
-                    reg_info = '(вы тоже)'
+                    reg_info = '(Вы тоже)'
                 elif not user_registered and reg_count:
-                    reg_info = '(а вы нет)'
+                    reg_info = '(а Вы нет)'
                 elif user_registered and reg_count == 1:
-                    reg_info = '(это вы)'
+                    reg_info = '(это Вы)'
                 else:
                     reg_info = ''
                 text += (

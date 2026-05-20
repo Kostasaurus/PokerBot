@@ -16,7 +16,8 @@ async def process_tournament_info(message_text: str):
     elif len(info) == 1:
         raw_start_time = info[0]
         max_tables = 4    
-        title = 'Турнир №' + str(TournamentManager.count_all_tournaments())
+        count = await TournamentManager.count_all_tournaments()
+        title = 'Турнир №' + str(count)
     else:
         return f"Неверный формат!\nПеределывай!"
 

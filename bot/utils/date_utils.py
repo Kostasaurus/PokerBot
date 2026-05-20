@@ -49,8 +49,8 @@ def format_datetime_moscow(dt: datetime) -> str:
     if dt.tzinfo is None:
         dt = dt.replace(tzinfo=ZoneInfo("UTC"))
 
-    moscow_dt = dt.astimezone(MOSCOW_TZ)
-
+    moscow_dt = dt #.astimezone(MOSCOW_TZ)
+    
     return f"{moscow_dt.day} {MONTHS_GENITIVE[moscow_dt.month]} в {moscow_dt.strftime('%H:%M')}"
 
 
@@ -59,7 +59,7 @@ def format_date_short_moscow(dt: datetime) -> str:
     if dt.tzinfo is None:
         dt = dt.replace(tzinfo=ZoneInfo("UTC"))
 
-    moscow_dt = dt.astimezone(MOSCOW_TZ)
+    moscow_dt = dt #.astimezone(MOSCOW_TZ)
     return f"{moscow_dt.day:02d}.{moscow_dt.month:02d} {moscow_dt.hour:02d}:{moscow_dt.minute:02d}"
 
 def get_date_range_for_year(year: int):

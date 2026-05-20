@@ -1,4 +1,5 @@
 import logging
+from datetime import datetime
 
 from aiogram import Router, F
 from aiogram.filters import StateFilter
@@ -105,6 +106,7 @@ async def show_tournament_detail_handler(call: CallbackQuery, state: FSMContext)
         }) if call.from_user.id not in settings.bot.ADMINS else create_inline_keyboard(1, **{
             f'ps:{year}:{month}:{tournament_id}:{status}': ('Участники', 'primary'),
              f'd:t:{year}:{month}:{tournament_id}:{status}': ('Добавить крупье', 'primary'),
+            f'rm_t:{year}:{month}:{tournament_id}:{status}': ('Удалить турнир', 'danger'),
             f'play:{year}:{month}:{tournament_id}': ('Участвовать', 'success'),
             f'month:{year}:{month}': '⬅ к месяцу'
         })
@@ -117,6 +119,7 @@ async def show_tournament_detail_handler(call: CallbackQuery, state: FSMContext)
         }) if call.from_user.id not in settings.bot.ADMINS else create_inline_keyboard(1, **{
             f'ps:{year}:{month}:{tournament_id}:{status}': ('Участники', 'primary'),
             f'd:t:{year}:{month}:{tournament_id}:{status}': ('Добавить крупье', 'primary'),
+            f'rm_t:{year}:{month}:{tournament_id}:{status}': ('Удалить турнир', 'danger'),
             f'c_t:{year}:{month}:{tournament_id}': ('Отменить запись', 'danger'),
             f'month:{year}:{month}': '⬅ к месяцу'
         })
@@ -127,6 +130,7 @@ async def show_tournament_detail_handler(call: CallbackQuery, state: FSMContext)
             f'month:{year}:{month}': '⬅ к месяцу',
         }) if call.from_user.id not in settings.bot.ADMINS else create_inline_keyboard(1, **{
             f'r:{year}:{month}:{tournament_id}:{status}':('Добавить результат', 'primary'),
+            f'rm_t:{year}:{month}:{tournament_id}:{status}': ('Удалить турнир', 'danger'),
             f'month:{year}:{month}': '⬅ к месяцу'
         })
 
@@ -189,6 +193,7 @@ async def show_active_tournament_detail(call: CallbackQuery):
         }) if call.from_user.id not in settings.bot.ADMINS else create_inline_keyboard(1, **{
             f'ps:{tournament_id}:{status}': ('Участники', 'primary'),
             f'd:a_t:{tournament_id}:{status}': ('Добавить крупье', 'primary'),
+            f'rm_a_t:{tournament_id}:{status}': ('Удалить турнир', 'danger'),
             f"cancel_tournament:{tournament_id}": ('Отменить запись', 'danger'),
             'play': '⬅ Назад',
         })
@@ -204,6 +209,7 @@ async def show_active_tournament_detail(call: CallbackQuery):
         }) if call.from_user.id not in settings.bot.ADMINS else create_inline_keyboard(1, **{
             f'ps:{tournament_id}:{status}': ('Участники', 'primary'),
             f'd:a_t:{tournament_id}:{status}': ('Добавить крупье', 'primary'),
+            f'rm_a_t:{tournament_id}:{status}': ('Удалить турнир', 'danger'),
             f"play_command:{tournament_id}": ('Участвовать', 'success'),
             'play': '⬅ Назад'
         })
@@ -559,10 +565,9 @@ async def show_all_stats_years_nav(call: CallbackQuery, state: FSMContext):
     await call.answer()
     await call.message.delete_reply_markup()
     text = call.message.text
+    year = datetime.now().year
     await call.message.edit_text(text=text, reply_markup=create_inline_keyboard(2, **{
-        # 'view_quarters_st:2025':('2025', 'primary'),
-        'view_quarters_st:2026':('2026', 'primary'),
-
+        f'view_quarters_st:{year}': (str(year), 'primary'),
     }))
 
 
@@ -606,6 +611,63 @@ async def show_month_stats(call: CallbackQuery, state: FSMContext):
     await call.message.edit_text(text=TemplateBuilder.show_stats(tg_id=call.from_user.id, stats=stats, year=year, month=month),
                                  reply_markup=create_inline_keyboard(2, **{f'view_months_st:{year}':(f'К {year}', 'primary'), f'stats_all':('За все время', 'primary')}))
 
+
+
+@callback_router.callback_query(F.data.startswith('rm_'), IsAdmin())
+async def request_delete_tournament(call: CallbackQuery):
+    await call.answer()
+    await call.message.delete_reply_markup()
+
+    if call.data.startswith('rm_a_t:'):
+        _, tournament_id, status = call.data.split(':')
+        confirm_data = f'yes_rm_a_t:{tournament_id}'
+        back_data = f'a_t:{tournament_id}:{status}'
+    else:
+        _, year, month, tournament_id, status = call.data.split(':')
+        confirm_data = f'yes_rm_t:{year}:{month}:{tournament_id}'
+        back_data = f't:{year}:{month}:{tournament_id}:{status}'
+
+    logger.info("Admin %d requested delete for tournament %s", call.from_user.id, tournament_id)
+    await call.message.edit_text(
+        LEXICON['confirm_delete_tournament'],
+        reply_markup=create_inline_keyboard(1, **{
+            confirm_data: ('Абсолютно', 'danger'),
+            back_data: '⬅ Назад',
+        })
+    )
+
+
+@callback_router.callback_query(F.data.startswith('yes_rm_'), IsAdmin())
+async def confirm_delete_tournament(call: CallbackQuery):
+    await call.answer()
+    await call.message.delete_reply_markup()
+
+    if call.data.startswith('yes_rm_a_t:'):
+        _, tournament_id = call.data.split(':')
+        from_play = True
+    else:
+        _, year, month, tournament_id = call.data.split(':')
+        from_play = False
+
+    logger.info("Admin %d confirmed delete for tournament %s", call.from_user.id, tournament_id)
+    deleted = await TournamentManager.delete_tournament(tournament_id=tournament_id)
+    if not deleted:
+        await call.answer('Турнир не найден', show_alert=True)
+        return
+
+    if from_play:
+        data = await TournamentManager.get_tournaments_with_status(user_id=call.from_user.id)
+        markup = build_play_keyboard(data)
+        suffix = "Нет предстоящих турниров." if not markup else "Ближайшие турниры:"
+        await call.message.edit_text(
+            f"{LEXICON['tournament_deleted']}\n\n{suffix}",
+            reply_markup=markup,
+        )
+    else:
+        await call.message.edit_text(
+            LEXICON['tournament_deleted'],
+            reply_markup=create_inline_keyboard(1, **{f'month:{year}:{month}': '⬅ к месяцу'}),
+        )
 
 
 @callback_router.callback_query(F.data.startswith('ps:'))

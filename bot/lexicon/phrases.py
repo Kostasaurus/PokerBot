@@ -177,6 +177,9 @@ LEXICON = {
     # Prompt for entering tournament results
     "add_results": "Вводите ник игрока и его результаты через пробел.\nОдин игрок - одно сообщение",
 
+    "confirm_delete_tournament": "Вы уверены, что хотите удалить турнир?\nЭто действие нельзя отменить.",
+    "tournament_deleted": "Турнир удалён.",
+
     # ===== User Deletion =====
 
     # Message after successful deletion

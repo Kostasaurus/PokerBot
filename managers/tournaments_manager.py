@@ -494,6 +494,31 @@ class TournamentManager:
 
     @staticmethod
     @connection
+    async def delete_tournament(session, tournament_id: uuid.UUID | str) -> bool:
+        if not isinstance(tournament_id, uuid.UUID):
+            tournament_id = uuid.UUID(str(tournament_id))
+
+        tournament = await session.get(Tournament, tournament_id)
+        if not tournament:
+            return False
+
+        await session.execute(
+            delete(TournamentRegistration).where(
+                TournamentRegistration.tournament_id == tournament_id
+            )
+        )
+        await session.execute(
+            delete(CanceledRegistration).where(
+                CanceledRegistration.tournament_id == tournament_id
+            )
+        )
+        await session.execute(delete(Tournament).where(Tournament.id == tournament_id))
+        await session.commit()
+        logger.info("Турнир %s удалён", tournament_id)
+        return True
+
+    @staticmethod
+    @connection
     async def count_all_tournaments(session):
 
         tournaments = (

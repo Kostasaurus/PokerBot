@@ -12,6 +12,7 @@ class Actions(StatesGroup):
 
 class Admin(StatesGroup):
     waiting_tournament_info = State()
+    waiting_edit_tournament_info = State()
     waiting_dealer = State()
     waiting_results = State()
 

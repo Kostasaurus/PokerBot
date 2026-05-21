@@ -8,7 +8,7 @@ from bot.FSM.FSM import Registration, Actions, Admin
 from bot.filters.user_filters import IsAdmin
 from bot.keyboards.keyboards_builders import create_inline_keyboard
 from bot.lexicon.phrases import LEXICON
-from bot.utils.adding_tournament_utils import process_tournament_info
+from bot.utils.adding_tournament_utils import process_tournament_info, process_edit_tournament_info
 from managers.tournaments_manager import TournamentManager
 from managers.user_manager import UserManager
 from schemas.user_schemas import Nickname, RegisterUser
@@ -71,6 +71,20 @@ async def add_tournament_info(message: Message, state: FSMContext):
     result = await process_tournament_info(message.text)
     if not result:
         await message.reply('Турнир успешно добавлен!')
+        await message.react([ReactionTypeEmoji(emoji='👍')])
+        await state.clear()
+    else:
+        await message.reply(result, reply_markup=create_inline_keyboard(1, **{'delete_state': ('Отменить', 'danger')}))
+        await message.react([ReactionTypeEmoji(emoji='👎')])
+
+
+@message_router.message(StateFilter(Admin.waiting_edit_tournament_info), IsAdmin())
+async def edit_tournament_info(message: Message, state: FSMContext):
+    data = await state.get_data()
+    tournament_id = data['edit_tournament_id']
+    result = await process_edit_tournament_info(message.text, tournament_id)
+    if not result:
+        await message.reply('Турнир успешно изменён!')
         await message.react([ReactionTypeEmoji(emoji='👍')])
         await state.clear()
     else:

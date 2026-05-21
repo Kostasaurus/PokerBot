@@ -341,6 +341,34 @@ class TournamentManager:
         await session.commit()
         logger.info('New tournament added')
 
+    @staticmethod
+    @connection
+    async def get_tournament_by_id(session, tournament_id: uuid.UUID | str) -> Tournament | None:
+        if not isinstance(tournament_id, uuid.UUID):
+            tournament_id = uuid.UUID(str(tournament_id))
+        return await session.get(Tournament, tournament_id)
+
+    @staticmethod
+    @connection
+    async def update_tournament(
+        session,
+        tournament_id: uuid.UUID | str,
+        tournament: AddingTournament,
+    ) -> bool:
+        if not isinstance(tournament_id, uuid.UUID):
+            tournament_id = uuid.UUID(str(tournament_id))
+
+        record = await session.get(Tournament, tournament_id)
+        if not record:
+            return False
+
+        record.title = tournament.title
+        record.start_time = tournament.start_time
+        record.max_tables = tournament.max_tables
+        await session.commit()
+        logger.info("Турнир %s обновлён", tournament_id)
+        return True
+
 
     @staticmethod
     @connection

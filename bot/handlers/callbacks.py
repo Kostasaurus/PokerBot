@@ -551,11 +551,19 @@ async def add_results_handler(call: CallbackQuery, state: FSMContext):
     await call.message.delete_reply_markup()
     _, year, month, tournament_id, status = call.data.split(':')
 
-    await call.message.edit_text(LEXICON['add_results'], reply_markup=create_inline_keyboard(1, **{
-        f't:{year}:{month}:{tournament_id}:{status}':('Отменить', 'danger'),
-        f'save_results':('Сохранить', 'success')
-    }))
-    await state.update_data(tournament_id=tournament_id)
+    await call.message.answer(
+        LEXICON['add_results'],
+        reply_markup=create_inline_keyboard(1, **{
+            f't:{year}:{month}:{tournament_id}:{status}': ('Отменить', 'danger'),
+            'save_results': ('Сохранить', 'success'),
+        }),
+    )
+    await state.update_data(
+        tournament_id=tournament_id,
+        results_year=int(year),
+        results_month=int(month),
+        results_status=status,
+    )
     await state.set_state(Admin.waiting_results)
 
 @callback_router.callback_query(F.data == 'save_results', StateFilter(Admin.waiting_results))
@@ -571,6 +579,22 @@ async def save_results_handler(call: CallbackQuery, state: FSMContext):
     await TournamentManager.add_results(tournament_id=tournament_id, results=results)
     await call.message.edit_text('Данные добавлены!', reply_markup=None)
 
+    showresults = await UserManager.get_all_users_stats(tournament_id=tournament_id)
+    tournament_info = await TournamentManager.get_tournament_by_id(tournament_id=tournament_id)
+    year = data.get('results_year', tournament_info.start_time.year)
+    month = data.get('results_month', tournament_info.start_time.month)
+    status = data.get('results_status', 'fin')
+
+    await call.message.answer(
+        text=TemplateBuilder.show_tournament_stats(
+            tournament=tournament_info, results=showresults, tg_id=0
+        ),
+        reply_markup=create_inline_keyboard(1, **{
+            f'r:{year}:{month}:{tournament_id}:{status}': ('Добавить результат', 'primary'),
+        }),
+    )
+    await state.clear()
+    
 
 
 @callback_router.callback_query(F.data == 'stats_all')

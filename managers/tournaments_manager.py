@@ -485,6 +485,23 @@ class TournamentManager:
 
     @staticmethod
     @connection
+    async def close_tournament_registration(session, tournament_id: uuid.UUID | str) -> bool:
+        if not isinstance(tournament_id, uuid.UUID):
+            tournament_id = uuid.UUID(str(tournament_id))
+
+        stmt = (
+            update(Tournament)
+            .where(Tournament.id == tournament_id)
+            .values(status='finished')
+        )
+        result = await session.execute(stmt)
+        await session.commit()
+        if result.rowcount:
+            logger.info("Регистрация на турнир %s закрыта", tournament_id)
+        return result.rowcount > 0
+
+    @staticmethod
+    @connection
     async def check_user_tournament_registration(session, tournament_id: uuid.UUID | str, nickname: str):
         tg_id = await UserManager.find_tg_id_by_username(username=nickname)
 

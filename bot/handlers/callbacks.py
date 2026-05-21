@@ -104,7 +104,8 @@ async def show_tournament_detail_handler(call: CallbackQuery, state: FSMContext)
             f'month:{year}:{month}': '⬅ к месяцу'
         }) if call.from_user.id not in settings.bot.ADMINS else create_inline_keyboard(1, **{
             f'ps:{year}:{month}:{tournament_id}:{status}': ('Участники', 'primary'),
-             f'd:t:{year}:{month}:{tournament_id}:{status}': ('Добавить крупье', 'primary'),
+            f'finish_t:{year}:{month}:{tournament_id}:{status}': ('Закрыть регистрацию', 'danger'),
+            f'd:t:{year}:{month}:{tournament_id}:{status}': ('Добавить крупье', 'primary'),
             f'ed:t:{year}:{month}:{tournament_id}:{status}': ('Изменить турнир', 'primary'),
             f'rm_t:{year}:{month}:{tournament_id}:{status}': ('Удалить турнир', 'danger'),
             f'play:{year}:{month}:{tournament_id}': ('Участвовать', 'success'),
@@ -118,6 +119,7 @@ async def show_tournament_detail_handler(call: CallbackQuery, state: FSMContext)
             f'month:{year}:{month}': '⬅ к месяцу'
         }) if call.from_user.id not in settings.bot.ADMINS else create_inline_keyboard(1, **{
             f'ps:{year}:{month}:{tournament_id}:{status}': ('Участники', 'primary'),
+            f'finish_t:{year}:{month}:{tournament_id}:{status}': ('Закрыть регистрацию', 'danger'),
             f'd:t:{year}:{month}:{tournament_id}:{status}': ('Добавить крупье', 'primary'),
             f'ed:t:{year}:{month}:{tournament_id}:{status}': ('Изменить турнир', 'primary'),
             f'rm_t:{year}:{month}:{tournament_id}:{status}': ('Удалить турнир', 'danger'),
@@ -519,6 +521,21 @@ async def edit_tournament_handler(call: CallbackQuery, state: FSMContext):
     )
     await state.set_state(Admin.waiting_edit_tournament_info)
     await state.update_data(edit_tournament_id=tournament_id, edit_back_button=back_data)
+
+
+@callback_router.callback_query(F.data.startswith('finish_t:'), IsAdmin())
+async def close_tournament_registration_handler(call: CallbackQuery):
+    await call.answer()
+    await call.message.delete_reply_markup()
+    _, year, month, tournament_id, _status = call.data.split(':')
+    logger.info("Admin %d closed registration for tournament %s", call.from_user.id, tournament_id)
+
+    closed = await TournamentManager.close_tournament_registration(tournament_id=tournament_id)
+    if not closed:
+        await call.answer('Турнир не найден', show_alert=True)
+        return
+
+    await call.message.answer(LEXICON['registration_closed'])
 
 
 @callback_router.callback_query(F.data.startswith('d:'))

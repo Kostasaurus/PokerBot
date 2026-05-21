@@ -186,6 +186,7 @@ LEXICON = {
 
     "confirm_delete_tournament": "Вы уверены, что хотите удалить турнир?\nЭто действие нельзя отменить.",
     "tournament_deleted": "Турнир удалён.",
+    "registration_closed": "Регистрация на турнир закрыта.",
 
     # ===== User Deletion =====
 

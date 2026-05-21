@@ -507,16 +507,17 @@ class TournamentManager:
     @staticmethod
     @connection
     async def add_results(session, tournament_id: uuid.UUID | str, results: dict):
-        # updated = 0
+        updated = 0
         for tg_id, result in results.items():
             stmt = (
                 update(TournamentRegistration)
-                .where(TournamentRegistration.tg_id == tg_id, TournamentRegistration.tournament_id == tournament_id)
+                .where(TournamentRegistration.tg_id == int(tg_id), TournamentRegistration.tournament_id == tournament_id)
                 .values(result=result)
             )
             res = await session.execute(stmt)
-            # updated += res.rowcount
+            updated += res.rowcount
         await session.commit()
+        logger.info("сохранено результатов: %s", updated)
         # return updated
 
 

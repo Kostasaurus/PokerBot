@@ -17,6 +17,7 @@ from bot.keyboards.keyboards_builders import (
 from bot.lexicon.phrases import LEXICON
 from bot.lexicon.templates import TemplateBuilder
 from bot.utils.date_utils import get_date_range_for_year, get_quarter_range, get_date_range_for_month
+from bot.utils.results_utils import refresh_results_player_list
 from core.settings import settings
 from managers.tournaments_manager import TournamentManager
 from managers.user_manager import UserManager
@@ -580,20 +581,52 @@ async def add_results_handler(call: CallbackQuery, state: FSMContext):
     await call.message.delete_reply_markup()
     _, year, month, tournament_id, status = call.data.split(':')
 
-    await call.message.answer(
-        LEXICON['add_results'],
-        reply_markup=create_inline_keyboard(1, **{
-            f't:{year}:{month}:{tournament_id}:{status}': ('Отменить', 'danger'),
-            'save_results': ('Сохранить', 'success'),
-        }),
-    )
+    await state.set_state(Admin.waiting_results)
     await state.update_data(
         tournament_id=tournament_id,
         results_year=int(year),
         results_month=int(month),
         results_status=status,
+        results={},
     )
+
+    sent = await call.message.answer(LEXICON['select_player_for_results'])
+    await state.update_data(
+        results_chat_id=sent.chat.id,
+        results_message_id=sent.message_id,
+    )
+    await refresh_results_player_list(call.message.bot, state)
+
+
+@callback_router.callback_query(F.data.startswith('rp:'), IsAdmin())
+async def select_player_for_result(call: CallbackQuery, state: FSMContext):
+    await call.answer()
+    _, tournament_id, tg_id = call.data.split(':', 2)
+    tg_id = int(tg_id)
+
+    players = await UserManager.get_all_players(tournament_id=tournament_id)
+    player = next((p for p in players if p['tg_id'] == tg_id), None)
+    if not player or player['box'] == 0:
+        await call.answer('Игрок не найден', show_alert=True)
+        return
+
+    await state.set_state(Admin.waiting_result_score)
+    await state.update_data(
+        result_player_tg_id=tg_id,
+        result_player_nickname=player['nickname'],
+    )
+    await call.message.answer(
+        LEXICON['enter_result_score'].format(nickname=player['nickname']),
+        reply_markup=create_inline_keyboard(1, **{'res_back': '⬅ к списку'}),
+    )
+
+
+@callback_router.callback_query(F.data == 'res_back', IsAdmin())
+async def back_to_results_player_list(call: CallbackQuery, state: FSMContext):
+    await call.answer()
     await state.set_state(Admin.waiting_results)
+    await refresh_results_player_list(call.message.bot, state)
+
 
 @callback_router.callback_query(F.data == 'save_results', StateFilter(Admin.waiting_results))
 async def save_results_handler(call: CallbackQuery, state: FSMContext):

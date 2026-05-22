@@ -238,6 +238,7 @@ class UserManager:
                 TournamentRegistration.box,
                 UsersRegistered.nickname,
                 Users.username,
+                TournamentRegistration.result,
                 func.coalesce(ante_counts.c.ante_count, 0).label('ante_count'),
             )
             .join(Users, Users.tg_id == TournamentRegistration.tg_id)
@@ -255,6 +256,7 @@ class UserManager:
                 'box': row.box,
                 'nickname': row.nickname,
                 'tg_username': row.username,
+                'result': row.result,
                 'ante_count': row.ante_count,
             }
             for row in rows

@@ -15,4 +15,5 @@ class Admin(StatesGroup):
     waiting_edit_tournament_info = State()
     waiting_dealer = State()
     waiting_results = State()
+    waiting_result_score = State()
 

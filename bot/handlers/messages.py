@@ -12,7 +12,7 @@ from bot.utils.adding_tournament_utils import process_tournament_info, process_e
 from managers.tournaments_manager import TournamentManager
 from managers.user_manager import UserManager
 from schemas.user_schemas import Nickname, RegisterUser
-from schemas.user_schemas import UserEmail, OneUserResult
+from schemas.user_schemas import UserEmail
 
 message_router = Router()
 
@@ -114,30 +114,25 @@ async def add_dealer(message: Message, state: FSMContext):
         await message.reply(text=result)
         await message.react([ReactionTypeEmoji(emoji='👎')])
 
-@message_router.message(StateFilter(Admin.waiting_results), IsAdmin())
-async def add_result(message: Message, state: FSMContext):
-    info = message.text.split(' ')
-    if len(info) != 2:
-        await message.reply(text='Фигню написал, переделывай!')
-        await message.react([ReactionTypeEmoji(emoji='👎')])
-        return
-    nickname, result = info
-    try:
-        OneUserResult(username=nickname, result=int(result))
-    except ValidationError:
-        await message.reply(text='Фигню написал, переделывай!')
-        await message.react([ReactionTypeEmoji(emoji='👎')])
-        return
-    data = await state.get_data()
+@message_router.message(StateFilter(Admin.waiting_result_score), IsAdmin())
+async def add_result_score(message: Message, state: FSMContext):
+    from bot.utils.results_utils import refresh_results_player_list
 
-    tg_id = await TournamentManager.check_user_tournament_registration(tournament_id=data['tournament_id'], nickname=nickname)
-    if isinstance(tg_id, int):
-        current_results = data.get('results', {})
-        current_results[tg_id] = int(result)
-        await state.update_data(results=current_results)
-        await message.react([ReactionTypeEmoji(emoji='👍')])
-    else:
-        await message.reply(tg_id)
+    try:
+        score = int(message.text.strip())
+    except ValueError:
+        await message.reply('Введите число очков')
+        await message.react([ReactionTypeEmoji(emoji='👎')])
+        return
+
+    data = await state.get_data()
+    tg_id = data['result_player_tg_id']
+    current_results = data.get('results', {})
+    current_results[str(tg_id)] = score
+    await state.update_data(results=current_results)
+    await state.set_state(Admin.waiting_results)
+    await message.react([ReactionTypeEmoji(emoji='👍')])
+    await refresh_results_player_list(message.bot, state)
 
 @message_router.message()
 async def answer_to_random_text(message: Message):

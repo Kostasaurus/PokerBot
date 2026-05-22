@@ -181,8 +181,8 @@ LEXICON = {
         "\nПример:\n   ALL IN--06.06.2026 17:00"
     ),
 
-    # Prompt for entering tournament results
-    "add_results": "Вводите ник игрока и его результаты через пробел.\nОдин игрок - одно сообщение",
+    "select_player_for_results": "Выберите игрока и введите очки сообщением:",
+    "enter_result_score": "Введите очки для <b>{nickname}</b>:",
 
     "confirm_delete_tournament": "Вы уверены, что хотите удалить турнир?\nЭто действие нельзя отменить.",
     "tournament_deleted": "Турнир удалён.",

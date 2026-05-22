@@ -95,7 +95,7 @@ def tournaments_list_keyboard(tournaments_data: list[dict], month: int, year: in
                 callback_data = f"t:{year}:{month}:{t.id}:av"
 
         else:
-            prefix = "🕸"
+            prefix = "✔"
             style = None
             callback_data = f"t:{year}:{month}:{t.id}:fin"
 

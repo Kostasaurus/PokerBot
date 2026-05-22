@@ -11,10 +11,9 @@ from sqlalchemy.exc import IntegrityError
 
 from core.core_dependency.db_dependency import connection
 from db.models.canceled_registrations import CanceledRegistration
+from db.models.tournament_ante_entries import TournamentAnteEntry
 from db.models.tournaments import Tournament
 from db.models.tournaments_registration import TournamentRegistration
-from db.models.users import Users
-from db.models.users_registered import UsersRegistered
 from managers.user_manager import UserManager
 from schemas.tournament_schemas import TournamentRead, TournamentRegistrationBase, TournamentRegistrationReturn, \
     AddingTournament
@@ -561,6 +560,31 @@ class TournamentManager:
         await session.execute(delete(Tournament).where(Tournament.id == tournament_id))
         await session.commit()
         logger.info("Турнир %s удалён", tournament_id)
+        return True
+   
+    @staticmethod
+    @connection
+    async def record_player_ante_entry(
+        session,
+        tournament_id: uuid.UUID | str,
+        tg_id: int,
+    ) -> bool:
+        if not isinstance(tournament_id, uuid.UUID):
+            tournament_id = uuid.UUID(str(tournament_id))
+
+        registration = await session.execute(
+            select(TournamentRegistration.id).where(
+                TournamentRegistration.tournament_id == tournament_id,
+                TournamentRegistration.tg_id == tg_id,
+                TournamentRegistration.box > 0,
+            )
+        )
+        if registration.scalar_one_or_none() is None:
+            return False
+
+        session.add(TournamentAnteEntry(tournament_id=tournament_id, tg_id=tg_id))
+        await session.commit()
+        logger.info("Зафиксирован вход: tournament_id=%s, tg_id=%s", tournament_id, tg_id)
         return True
 
     @staticmethod

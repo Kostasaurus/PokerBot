@@ -102,12 +102,14 @@ async def show_tournament_detail_handler(call: CallbackQuery, state: FSMContext)
         reply_markup = create_inline_keyboard(1, **{
             f'play:{year}:{month}:{tournament_id}': ('Участвовать', 'success'),
             f'month:{year}:{month}': '⬅ к месяцу'
-        }) if call.from_user.id not in settings.bot.ADMINS else create_inline_keyboard(1, **{
+        }) if call.from_user.id not in settings.bot.ADMINS else create_inline_keyboard(
+            (1, 1, 2, 2, 1, 1), **{
             f'ps:{year}:{month}:{tournament_id}:{status}': ('Участники', 'primary'),
             f'finish_t:{year}:{month}:{tournament_id}:{status}': ('Закрыть регистрацию', 'danger'),
-            f'd:t:{year}:{month}:{tournament_id}:{status}': ('Добавить крупье', 'primary'),
-            f'ed:t:{year}:{month}:{tournament_id}:{status}': ('Изменить турнир', 'primary'),
-            f'rm_t:{year}:{month}:{tournament_id}:{status}': ('Удалить турнир', 'danger'),
+            f'ante:t:{year}:{month}:{tournament_id}:{status}': ('+ вход', 'primary'),
+            f'd:t:{year}:{month}:{tournament_id}:{status}': ('+ крупье', 'primary'),
+            f'ed:t:{year}:{month}:{tournament_id}:{status}': ('Изменить', 'primary'),
+            f'rm_t:{year}:{month}:{tournament_id}:{status}': ('Удалить', 'danger'),
             f'play:{year}:{month}:{tournament_id}': ('Участвовать', 'success'),
             f'month:{year}:{month}': '⬅ к месяцу'
         })
@@ -117,12 +119,14 @@ async def show_tournament_detail_handler(call: CallbackQuery, state: FSMContext)
         reply_markup = create_inline_keyboard(1, **{
             f'c_t:{year}:{month}:{tournament_id}': ('Отменить запись', 'danger'),
             f'month:{year}:{month}': '⬅ к месяцу'
-        }) if call.from_user.id not in settings.bot.ADMINS else create_inline_keyboard(1, **{
+        }) if call.from_user.id not in settings.bot.ADMINS else create_inline_keyboard(
+            (1, 1, 2, 2, 1, 1), **{
             f'ps:{year}:{month}:{tournament_id}:{status}': ('Участники', 'primary'),
             f'finish_t:{year}:{month}:{tournament_id}:{status}': ('Закрыть регистрацию', 'danger'),
-            f'd:t:{year}:{month}:{tournament_id}:{status}': ('Добавить крупье', 'primary'),
-            f'ed:t:{year}:{month}:{tournament_id}:{status}': ('Изменить турнир', 'primary'),
-            f'rm_t:{year}:{month}:{tournament_id}:{status}': ('Удалить турнир', 'danger'),
+            f'ante:t:{year}:{month}:{tournament_id}:{status}': ('+ вход', 'primary'),
+            f'd:t:{year}:{month}:{tournament_id}:{status}': ('+ крупье', 'primary'),
+            f'ed:t:{year}:{month}:{tournament_id}:{status}': ('Изменить', 'primary'),
+            f'rm_t:{year}:{month}:{tournament_id}:{status}': ('Удалить', 'danger'),
             f'c_t:{year}:{month}:{tournament_id}': ('Отменить запись', 'danger'),
             f'month:{year}:{month}': '⬅ к месяцу'
         })
@@ -131,9 +135,11 @@ async def show_tournament_detail_handler(call: CallbackQuery, state: FSMContext)
         text=TemplateBuilder.show_tournament_stats(tournament=tournament, results=results, tg_id=call.from_user.id)
         reply_markup = create_inline_keyboard(1, **{
             f'month:{year}:{month}': '⬅ к месяцу',
-        }) if call.from_user.id not in settings.bot.ADMINS else create_inline_keyboard(1, **{
+        }) if call.from_user.id not in settings.bot.ADMINS else create_inline_keyboard(
+            (1, 2, 1, 1), **{
             f'ps:{year}:{month}:{tournament_id}:{status}': ('Участники', 'primary'),
-            f'r:{year}:{month}:{tournament_id}:{status}':('Добавить результат', 'primary'),            
+            f'ante:t:{year}:{month}:{tournament_id}:{status}': ('+ вход', 'primary'),
+            f'r:{year}:{month}:{tournament_id}:{status}':('+ результат', 'primary'),            
             f'rm_t:{year}:{month}:{tournament_id}:{status}': ('Удалить турнир', 'danger'),
             f'month:{year}:{month}': '⬅ к месяцу'
         })
@@ -194,11 +200,14 @@ async def show_active_tournament_detail(call: CallbackQuery):
         reply_markup=create_inline_keyboard(1, **{
             f"cancel_tournament:{tournament_id}": ('Отменить запись', 'danger'),
             'play': '⬅ Назад'
-        }) if call.from_user.id not in settings.bot.ADMINS else create_inline_keyboard(1, **{
+        }) if call.from_user.id not in settings.bot.ADMINS else create_inline_keyboard(
+            (1, 2, 2, 1, 1),
+            **{
             f'ps:{tournament_id}:{status}': ('Участники', 'primary'),
-            f'd:a_t:{tournament_id}:{status}': ('Добавить крупье', 'primary'),
-            f'ed:a_t:{tournament_id}:{status}': ('Изменить турнир', 'primary'),
-            f'rm_a_t:{tournament_id}:{status}': ('Удалить турнир', 'danger'),
+            f'ante:a_t:{tournament_id}:{status}': ('+ вход', 'primary'),
+            f'd:a_t:{tournament_id}:{status}': ('+ крупье', 'primary'),
+            f'ed:a_t:{tournament_id}:{status}': ('Изменить', 'primary'),
+            f'rm_a_t:{tournament_id}:{status}': ('Удалить', 'danger'),
             f"cancel_tournament:{tournament_id}": ('Отменить запись', 'danger'),
             'play': '⬅ Назад',
         })
@@ -211,11 +220,14 @@ async def show_active_tournament_detail(call: CallbackQuery):
         reply_markup=create_inline_keyboard(1, **{
             f"play_command:{tournament_id}": ('Участвовать', 'success'),
             'play': '⬅ Назад'
-        }) if call.from_user.id not in settings.bot.ADMINS else create_inline_keyboard(1, **{
+        }) if call.from_user.id not in settings.bot.ADMINS else create_inline_keyboard(
+            (1, 2, 2, 1, 1),
+            **{
             f'ps:{tournament_id}:{status}': ('Участники', 'primary'),
-            f'd:a_t:{tournament_id}:{status}': ('Добавить крупье', 'primary'),
-            f'ed:a_t:{tournament_id}:{status}': ('Изменить турнир', 'primary'),
-            f'rm_a_t:{tournament_id}:{status}': ('Удалить турнир', 'danger'),
+            f'ante:a_t:{tournament_id}:{status}': ('+ вход', 'primary'),
+            f'd:a_t:{tournament_id}:{status}': ('+ крупье', 'primary'),
+            f'ed:a_t:{tournament_id}:{status}': ('Изменить', 'primary'),
+            f'rm_a_t:{tournament_id}:{status}': ('Удалить', 'danger'),
             f"play_command:{tournament_id}": ('Участвовать', 'success'),
             'play': '⬅ Назад'
         })
@@ -732,6 +744,52 @@ async def confirm_delete_tournament(call: CallbackQuery):
             LEXICON['tournament_deleted'],
             reply_markup=create_inline_keyboard(1, **{f'month:{year}:{month}': '⬅ к месяцу'}),
         )
+
+
+@callback_router.callback_query(F.data.startswith('ante:'), IsAdmin())
+async def show_ante_player_list(call: CallbackQuery):
+    await call.answer()
+    await call.message.delete_reply_markup()
+
+    if call.data.startswith('ante:a_t:'):
+        _, tournament_id, status = call.data.split(':')[1:]
+        back_data = f'a_t:{tournament_id}:{status}'
+    else:
+        _, year, month, tournament_id, status = call.data.split(':')[1:]
+        back_data = f't:{year}:{month}:{tournament_id}:{status}'
+
+    players = [
+        p for p in await UserManager.get_all_players(tournament_id=tournament_id)
+        if p['box'] > 0
+    ]
+    if not players:
+        await call.answer('Нет игроков для фиксации входа', show_alert=True)
+        return
+
+    buttons = {
+        f'ante_r:{tournament_id}:{player["tg_id"]}': (player['nickname'], 'primary')
+        for player in players
+    }
+    buttons[back_data] = '⬅ Назад'
+    n = len(players)
+    width = tuple([2] * (n // 2) + ([1] if n % 2 else []) + [1])
+    await call.message.edit_text(
+        LEXICON['select_player_for_ante'],
+        reply_markup=create_inline_keyboard(width, **buttons),
+    )
+
+
+@callback_router.callback_query(F.data.startswith('ante_r:'), IsAdmin())
+async def record_ante_entry_handler(call: CallbackQuery):
+    _, tournament_id, tg_id = call.data.split(':', 2)
+    recorded = await TournamentManager.record_player_ante_entry(
+        tournament_id=tournament_id,
+        tg_id=int(tg_id),
+    )
+    if not recorded:
+        await call.answer('Не удалось зафиксировать вход', show_alert=True)
+        return
+    await call.answer(LEXICON['entry_recorded'], show_alert=True)
 
 
 @callback_router.callback_query(F.data.startswith('ps:'))

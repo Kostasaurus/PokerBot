@@ -7,6 +7,7 @@ from sqlalchemy.exc import IntegrityError
 from core.core_dependency.db_dependency import connection
 from db.models.canceled_registrations import CanceledRegistration
 from db.models.tournaments import Tournament
+from db.models.tournament_ante_entries import TournamentAnteEntry
 from db.models.tournaments_registration import TournamentRegistration
 from db.models.users import Users
 from db.models.users_registered import UsersRegistered
@@ -217,6 +218,18 @@ class UserManager:
             session,
             tournament_id: uuid.UUID | str
     ) -> list[dict]:
+        if not isinstance(tournament_id, uuid.UUID):
+            tournament_id = uuid.UUID(str(tournament_id))
+
+        ante_counts = (
+            select(
+                TournamentAnteEntry.tg_id,
+                func.count().label('ante_count'),
+            )
+            .where(TournamentAnteEntry.tournament_id == tournament_id)
+            .group_by(TournamentAnteEntry.tg_id)
+            .subquery()
+        )
 
         query = (
             select(
@@ -224,16 +237,25 @@ class UserManager:
                 TournamentRegistration.table,
                 TournamentRegistration.box,
                 UsersRegistered.nickname,
-                Users.username
+                Users.username,
+                func.coalesce(ante_counts.c.ante_count, 0).label('ante_count'),
             )
             .join(Users, Users.tg_id == TournamentRegistration.tg_id)
             .join(UsersRegistered, UsersRegistered.tg_id == TournamentRegistration.tg_id)
+            .outerjoin(ante_counts, TournamentRegistration.tg_id == ante_counts.c.tg_id)
             .where(TournamentRegistration.tournament_id == tournament_id)
         )
 
         result = await session.execute(query)
         rows = result.all()
         return [
-            {'tg_id': row.tg_id, 'table': row.table, 'box': row.box, 'nickname': row.nickname, 'tg_username': row.username}
+            {
+                'tg_id': row.tg_id,
+                'table': row.table,
+                'box': row.box,
+                'nickname': row.nickname,
+                'tg_username': row.username,
+                'ante_count': row.ante_count,
+            }
             for row in rows
         ]

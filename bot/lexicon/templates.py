@@ -106,13 +106,12 @@ class TemplateBuilder:
     @staticmethod
     def format_player(player: dict, highlight=False):
         tg_id = player['tg_id']
-        nickname = player['nickname']
-        username = player.get('tg_username')
-
+        nickname = player['nickname']        
+        ante_count = player['ante_count']
 
         display_name = f'<a href="tg://user?id={tg_id}">{nickname}</a>'
 
-        base = f"{display_name}   {player['table']}-{player['box']}"
+        base = f"{display_name}   {player['table']}-{player['box']} ({ante_count})"
 
         if highlight:
             return f"<b>{base}</b>"
@@ -173,7 +172,7 @@ class TemplateBuilder:
     def show_tournament_players(cls, players: list[dict], tg_id: int):
         text = (
             f"<b>Список участников</b>\n"
-            f"Tг-ник (ник)   стол-бокс\n\n"
+            f"Tг-ник (ник)   стол-бокс (входы)\n\n"
                 )
 
         if not players:

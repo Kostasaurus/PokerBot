@@ -187,7 +187,7 @@ LEXICON = {
     "confirm_delete_tournament": "Вы уверены, что хотите удалить турнир?\nЭто действие нельзя отменить.",
     "tournament_deleted": "Турнир удалён.",
     "registration_closed": "Регистрация на турнир закрыта.",
-    "select_player_for_ante": "Выберите игрока для фиксации входа:",
+    "select_player_for_ante": "Выберите игрока — каждое нажатие добавляет вход. В скобках — число входов:",
     "entry_recorded": "Вход зафиксирован",
 
     # ===== User Deletion =====

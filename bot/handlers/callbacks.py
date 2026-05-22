@@ -17,6 +17,7 @@ from bot.keyboards.keyboards_builders import (
 from bot.lexicon.phrases import LEXICON
 from bot.lexicon.templates import TemplateBuilder
 from bot.utils.date_utils import get_date_range_for_year, get_quarter_range, get_date_range_for_month
+from bot.utils.ante_utils import refresh_ante_player_list
 from bot.utils.results_utils import refresh_results_player_list
 from core.settings import settings
 from managers.tournaments_manager import TournamentManager
@@ -780,7 +781,7 @@ async def confirm_delete_tournament(call: CallbackQuery):
 
 
 @callback_router.callback_query(F.data.startswith('ante:'), IsAdmin())
-async def show_ante_player_list(call: CallbackQuery):
+async def show_ante_player_list(call: CallbackQuery, state: FSMContext):
     await call.answer()
     await call.message.delete_reply_markup()
 
@@ -799,21 +800,17 @@ async def show_ante_player_list(call: CallbackQuery):
         await call.answer('Нет игроков для фиксации входа', show_alert=True)
         return
 
-    buttons = {
-        f'ante_r:{tournament_id}:{player["tg_id"]}': (player['nickname'], 'primary')
-        for player in players
-    }
-    buttons[back_data] = '⬅ Назад'
-    n = len(players)
-    width = tuple([2] * (n // 2) + ([1] if n % 2 else []) + [1])
-    await call.message.edit_text(
-        LEXICON['select_player_for_ante'],
-        reply_markup=create_inline_keyboard(width, **buttons),
+    await state.update_data(
+        ante_chat_id=call.message.chat.id,
+        ante_message_id=call.message.message_id,
+        ante_tournament_id=tournament_id,
+        ante_back_data=back_data,
     )
+    await refresh_ante_player_list(call.message.bot, state)
 
 
 @callback_router.callback_query(F.data.startswith('ante_r:'), IsAdmin())
-async def record_ante_entry_handler(call: CallbackQuery):
+async def record_ante_entry_handler(call: CallbackQuery, state: FSMContext):
     _, tournament_id, tg_id = call.data.split(':', 2)
     recorded = await TournamentManager.record_player_ante_entry(
         tournament_id=tournament_id,
@@ -822,7 +819,9 @@ async def record_ante_entry_handler(call: CallbackQuery):
     if not recorded:
         await call.answer('Не удалось зафиксировать вход', show_alert=True)
         return
+
     await call.answer(LEXICON['entry_recorded'], show_alert=True)
+    await refresh_ante_player_list(call.message.bot, state)
 
 
 @callback_router.callback_query(F.data.startswith('ps:'))

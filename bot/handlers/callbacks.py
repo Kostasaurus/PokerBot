@@ -617,8 +617,7 @@ async def select_player_for_result(call: CallbackQuery, state: FSMContext):
         result_player_nickname=player['nickname'],
     )
     await call.message.answer(
-        LEXICON['enter_result_score'].format(nickname=player['nickname']),
-        reply_markup=create_inline_keyboard(1, **{'res_back': '⬅ к списку'}),
+        LEXICON['enter_result_score'].format(nickname=player['nickname'])        
     )
 
 
@@ -792,10 +791,8 @@ async def show_ante_player_list(call: CallbackQuery, state: FSMContext):
         _, year, month, tournament_id, status = call.data.split(':')[1:]
         back_data = f't:{year}:{month}:{tournament_id}:{status}'
 
-    players = [
-        p for p in await UserManager.get_all_players(tournament_id=tournament_id)
-        if p['box'] > 0
-    ]
+    players = await UserManager.get_all_players(tournament_id=tournament_id)        
+    
     if not players:
         await call.answer('Нет игроков для фиксации входа', show_alert=True)
         return

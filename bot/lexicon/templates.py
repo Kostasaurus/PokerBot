@@ -106,10 +106,13 @@ class TemplateBuilder:
     @staticmethod
     def format_player(player: dict, highlight=False):
         tg_id = player['tg_id']
-        nickname = player['nickname']        
+        nickname = player['nickname']
+        tg_username = player['tg_username']        
         ante_count = player['ante_count']
 
-        display_name = f'<a href="tg://user?id={tg_id}">{nickname}</a>'
+        display_name = f'<a href="tg://user?id={tg_id}">{nickname}</a>' 
+        if tg_username: 
+            display_name = f'<a href="tg://resolve?domain={tg_username}">{nickname} (@{tg_username})</a>'
 
         base = f"{display_name}   {player['table']}-{player['box']} ({ante_count})"
 

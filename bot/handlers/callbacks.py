@@ -72,7 +72,10 @@ async def show_month_tournaments(call: CallbackQuery):
 
         return
 
-    text = TemplateBuilder.show_tournaments_in_month(tournaments=tournaments, month=month, year=year)
+    text = TemplateBuilder.show_tournaments_in_month(
+        tournaments=tournaments, month=month, year=year,
+        is_admin=user_id in settings.bot.ADMINS,
+    )
     await call.message.edit_text(
         text,
         reply_markup=tournaments_list_keyboard(tournaments, month=month, year=year)
@@ -99,7 +102,9 @@ async def show_tournament_detail_handler(call: CallbackQuery, state: FSMContext)
     if status == 'av':
        
         text = (
-            TemplateBuilder.show_available_tournament_info(tournament_info)
+            TemplateBuilder.show_available_tournament_info(
+                tournament_info, is_admin=call.from_user.id in settings.bot.ADMINS
+            )
         )
         reply_markup = create_inline_keyboard(1, **{
             f'play:{year}:{month}:{tournament_id}': ('Участвовать', 'success'),
@@ -218,7 +223,9 @@ async def show_active_tournament_detail(call: CallbackQuery):
         tournament_info = await TournamentManager.get_tournaments_with_status(
             user_id=call.from_user.id, tournament_id=tournament_id
         )
-        text=TemplateBuilder.show_available_tournament_info(tournament_info)
+        text=TemplateBuilder.show_available_tournament_info(
+            tournament_info, is_admin=call.from_user.id in settings.bot.ADMINS
+        )
         reply_markup=create_inline_keyboard(1, **{
             f"play_command:{tournament_id}": ('Участвовать', 'success'),
             'play': '⬅ Назад'

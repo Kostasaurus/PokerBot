@@ -47,17 +47,17 @@ class TemplateBuilder:
         return text
 
     @classmethod
-    def show_available_tournament_info(cls, tournament):
+    def show_available_tournament_info(cls, tournament, is_admin: bool = False):
         t = tournament['tournament']
         reg_count = tournament['registered_count']
-
 
         text = (
             "Информация о турнире:\n\n"
             f"{t.title}\n"
             f"Начало {format_datetime_moscow(t.start_time)}\n"
-            f"Записалось {reg_count}/{t.max_tables * 10}"
         )
+        if is_admin:
+            text += f"Записалось {reg_count}/{t.max_tables * 10}"
         return text
 
     @classmethod
@@ -72,7 +72,7 @@ class TemplateBuilder:
         return text
 
     @classmethod
-    def show_tournaments_in_month(cls, tournaments, month, year):
+    def show_tournaments_in_month(cls, tournaments, month, year, is_admin: bool = False):
 
         text = (
             f"Турниры за {MONTHS_NOMINATIVE[month]} {year}\n\n"
@@ -82,18 +82,16 @@ class TemplateBuilder:
             reg_count = tournament['registered_count']
             user_registered = tournament['user_registered']
             if t.status == 'scheduled':
-                if user_registered and reg_count > 1:
-                    reg_info = '(Вы тоже)'
-                elif not user_registered and reg_count:
-                    reg_info = '(а Вы нет)'
-                elif user_registered and reg_count == 1:
-                    reg_info = '(это Вы)'
+                if user_registered:
+                    reg_info = '(Вы зарегистрировались)'                
                 else:
-                    reg_info = ''
+                    reg_info = '(Идет регистрация)'
+                count_part = f"Записалось {reg_count}/{t.max_tables * 10}\n" if is_admin else ""
                 text += (
                         f"• {t.title}\n"
                         f"{format_datetime_moscow(t.start_time)}\n"
-                f"Записалось {reg_count}/{t.max_tables * 10} {reg_info}\n\n"
+                f"{count_part}{reg_info}\n"
+                f"\n"
                 )
             else:
                 text += (

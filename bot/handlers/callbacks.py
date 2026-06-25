@@ -19,6 +19,12 @@ from bot.lexicon.templates import TemplateBuilder
 from bot.utils.date_utils import get_date_range_for_year, get_quarter_range, get_date_range_for_month
 from bot.utils.ante_utils import refresh_ante_player_list
 from bot.utils.results_utils import refresh_results_player_list
+from bot.utils.players_utils import (
+    parse_players_callback,
+    players_list_keyboard,
+    players_list_keyboard_width,
+    refresh_delete_player_list,
+)
 from core.settings import settings
 from managers.tournaments_manager import TournamentManager
 from managers.user_manager import UserManager
@@ -829,19 +835,77 @@ async def record_ante_entry_handler(call: CallbackQuery, state: FSMContext):
 
 
 @callback_router.callback_query(F.data.startswith('ps:'))
-async def show_players(call: CallbackQuery):
+async def show_players(call: CallbackQuery, state: FSMContext):
     await call.answer()
     await call.message.delete_reply_markup()
-    info = call.data.split(':')
-    if len(info) == 3:
-        _, tournament_id, status = info
-        reply_markup = create_inline_keyboard(1, **{f'a_t:{tournament_id}:{status}':'⬅ Назад'})
-    elif len(info) == 5:
-        _, year, month, tournament_id, status = info
-        reply_markup = create_inline_keyboard(1, **{f't:{year}:{month}:{tournament_id}:{status}': '⬅ Назад'})
+    if await state.get_state() == Admin.waiting_add_player.state:
+        await state.clear()
+    tournament_id, status, _, _, back_data = parse_players_callback(call.data)
+
+    is_admin = call.from_user.id in settings.bot.ADMINS
+    players = await UserManager.get_all_players(tournament_id=tournament_id)
+    buttons = players_list_keyboard(back_data, is_admin)
+    await call.message.edit_text(
+        text=TemplateBuilder.show_tournament_players(players=players, tg_id=call.from_user.id),
+        reply_markup=create_inline_keyboard(players_list_keyboard_width(is_admin), **buttons),
+    )
+
+
+@callback_router.callback_query(F.data.startswith('pd:'), IsAdmin())
+async def show_delete_player_list(call: CallbackQuery, state: FSMContext):
+    await call.answer()
+    await call.message.delete_reply_markup()
+    tournament_id, _, _, _, back_data = parse_players_callback(f'ps:{call.data[3:]}')
 
     players = await UserManager.get_all_players(tournament_id=tournament_id)
-    await call.message.edit_text(text=TemplateBuilder.show_tournament_players(players=players, tg_id=call.from_user.id), reply_markup=reply_markup)
+    if not players:
+        await call.answer('Нет игроков для удаления', show_alert=True)
+        return
+
+    await state.update_data(
+        ps_chat_id=call.message.chat.id,
+        ps_message_id=call.message.message_id,
+        ps_tournament_id=tournament_id,
+        ps_back_data=back_data,
+        ps_viewer_tg_id=call.from_user.id,
+    )
+    await refresh_delete_player_list(call.message.bot, state)
+
+
+@callback_router.callback_query(F.data.startswith('pdr:'), IsAdmin())
+async def delete_player_from_tournament(call: CallbackQuery, state: FSMContext):
+    _, tournament_id, tg_id = call.data.split(':', 2)
+    tg_id = int(tg_id)
+
+    players = await UserManager.get_all_players(tournament_id=tournament_id)
+    if not any(p['tg_id'] == tg_id for p in players):
+        await call.answer('Игрок не найден', show_alert=True)
+        return
+
+    await TournamentManager.cancel_user_registration(tg_id=tg_id, tournament_id=tournament_id)
+    await call.answer(LEXICON['player_removed'], show_alert=True)
+    await refresh_delete_player_list(call.message.bot, state)
+
+
+@callback_router.callback_query(F.data.startswith('pa:'), IsAdmin())
+async def start_add_player(call: CallbackQuery, state: FSMContext):
+    await call.answer()
+    await call.message.delete_reply_markup()
+    tournament_id, _, _, _, back_data = parse_players_callback(f'ps:{call.data[3:]}')
+
+    await state.set_state(Admin.waiting_add_player)
+    await state.update_data(
+        add_player_tournament_id=tournament_id,
+        add_player_back_data=back_data,
+        add_player_chat_id=call.message.chat.id,
+        add_player_message_id=call.message.message_id,
+        add_player_viewer_tg_id=call.from_user.id,
+    )
+    action_suffix = back_data.split(':', 1)[1]
+    await call.message.edit_text(
+        LEXICON['enter_player_nickname'],
+        reply_markup=create_inline_keyboard(1, **{f'ps:{action_suffix}': '⬅ Назад'}),
+    )
 
 
 

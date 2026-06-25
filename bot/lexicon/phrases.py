@@ -189,6 +189,15 @@ LEXICON = {
     "registration_closed": "Регистрация на турнир закрыта.",
     "select_player_for_ante": "Выберите игрока — каждое нажатие добавляет вход. В скобках — число входов:",
     "entry_recorded": "Вход зафиксирован",
+    "select_player_to_delete": "Выберите игрока для удаления из турнира:",
+    "no_players_to_delete": "Нет игроков для удаления.",
+    "player_removed": "Игрок удалён из турнира.",
+    "enter_player_nickname": (
+        "Введите ник зарегистрированного пользователя "
+        "(ник из профиля или @username в Telegram):"
+    ),
+    "registered_user_not_found": "Пользователь не найден среди зарегистрированных.",
+    "player_added_to_tournament": "Игрок <b>{nickname}</b> добавлен на турнир.\nСтол: {table}\nБокс: {box}",
 
     # ===== User Deletion =====
 

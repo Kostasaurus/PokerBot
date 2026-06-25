@@ -16,4 +16,5 @@ class Admin(StatesGroup):
     waiting_dealer = State()
     waiting_results = State()
     waiting_result_score = State()
+    waiting_add_player = State()
 

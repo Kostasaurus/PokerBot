@@ -134,6 +134,50 @@ async def add_result_score(message: Message, state: FSMContext):
     await message.react([ReactionTypeEmoji(emoji='👍')])
     await refresh_results_player_list(message.bot, state)
 
+
+@message_router.message(StateFilter(Admin.waiting_add_player), IsAdmin())
+async def add_player_to_tournament(message: Message, state: FSMContext):
+    from bot.utils.players_utils import refresh_players_view
+
+    data = await state.get_data()
+    tournament_id = data['add_player_tournament_id']
+    back_data = data['add_player_back_data']
+    viewer_tg_id = data['add_player_viewer_tg_id']
+
+    tg_id = await UserManager.find_tg_id_by_username(username=message.text.strip())
+    if not tg_id:
+        await message.reply(LEXICON['registered_user_not_found'])
+        await message.react([ReactionTypeEmoji(emoji='👎')])
+        return
+
+    try:
+        registration = await TournamentManager.register_user_for_tournament(
+            user_id=tg_id,
+            tournament_id=tournament_id,
+        )
+    except ValueError as e:
+        await message.reply(str(e))
+        await message.react([ReactionTypeEmoji(emoji='👎')])
+        return
+
+    await state.clear()
+    await message.react([ReactionTypeEmoji(emoji='👍')])
+    await message.answer(
+        LEXICON['player_added_to_tournament'].format(
+            nickname=message.text.strip().lstrip('@'),
+            table=registration.table,
+            box=registration.box,
+        ),
+    )
+    await refresh_players_view(
+        bot=message.bot,
+        chat_id=data['add_player_chat_id'],
+        message_id=data['add_player_message_id'],
+        tournament_id=tournament_id,
+        viewer_tg_id=viewer_tg_id,
+        back_data=back_data,
+    )
+
 @message_router.message()
 async def answer_to_random_text(message: Message):
     await message.react([ReactionTypeEmoji(emoji='🤨')])

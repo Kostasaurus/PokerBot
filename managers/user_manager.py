@@ -25,12 +25,22 @@ class UserManager:
 
     @staticmethod
     @connection
-    async def find_tg_id_by_username( session, username: str):
+    async def find_tg_id_by_username(session, username: str):
+        if username.startswith('@'):
+            clean = username.lstrip('@')
+            user_result = await session.execute(
+                select(UsersRegistered.tg_id)
+                .join(Users, Users.tg_id == UsersRegistered.tg_id)
+                .where(func.lower(Users.username) == clean.lower())
+            )
+            return user_result.scalar_one_or_none()
+
         user_result = await session.execute(
-            select(UsersRegistered.tg_id).where(UsersRegistered.nickname == username.replace('@', ''))
+            select(UsersRegistered.tg_id).where(
+                func.lower(UsersRegistered.nickname) == username.lower()
+            )
         )
-        tg_id = user_result.scalar_one_or_none()
-        return tg_id
+        return user_result.scalar_one_or_none()
 
 
     @staticmethod

@@ -28,10 +28,8 @@ async def refresh_results_player_list(bot: Bot, state: FSMContext) -> None:
     month = data['results_month']
     status = data['results_status']
 
-    players = [
-        p for p in await UserManager.get_all_players(tournament_id=tournament_id)
-        if p['box'] > 0
-    ]
+    players = await UserManager.get_all_players(tournament_id=tournament_id)        
+    
     if not players:
         await bot.edit_message_text(
             chat_id=data['results_chat_id'],

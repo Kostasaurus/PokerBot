@@ -620,7 +620,7 @@ async def select_player_for_result(call: CallbackQuery, state: FSMContext):
 
     players = await UserManager.get_all_players(tournament_id=tournament_id)
     player = next((p for p in players if p['tg_id'] == tg_id), None)
-    if not player or player['box'] == 0:
+    if not player:
         await call.answer('Игрок не найден', show_alert=True)
         return
 

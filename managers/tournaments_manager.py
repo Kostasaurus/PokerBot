@@ -575,8 +575,7 @@ class TournamentManager:
         registration = await session.execute(
             select(TournamentRegistration.id).where(
                 TournamentRegistration.tournament_id == tournament_id,
-                TournamentRegistration.tg_id == tg_id,
-                TournamentRegistration.box > 0,
+                TournamentRegistration.tg_id == tg_id,                
             )
         )
         if registration.scalar_one_or_none() is None:
